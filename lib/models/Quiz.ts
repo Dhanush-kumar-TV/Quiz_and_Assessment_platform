@@ -30,7 +30,7 @@ const QuizSchema = new Schema(
     shuffleOptions: { type: Boolean, default: false },
     maxAttempts: { type: Number, default: 0 }, // 0 means unlimited
     emailResults: { type: Boolean, default: false },
-    accessType: { type: String, enum: ['public', 'password', 'registration'], default: 'public' },
+    accessType: { type: String, enum: ['public', 'password', 'registration', 'approval'], default: 'public' },
     password: { type: String, default: "" },
     registrationFields: [{ type: String }], // e.g. ["studentId", "class"]
     publicUrl: { type: String, unique: true },

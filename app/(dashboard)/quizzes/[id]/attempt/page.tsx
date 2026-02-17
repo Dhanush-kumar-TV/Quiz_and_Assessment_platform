@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import QuestionDisplay from "@/components/quiz/QuestionDisplay";
 import ScoreDisplay from "@/components/attempt/ScoreDisplay";
 import { Loader2, Timer, ChevronRight, ChevronLeft, Send, AlertTriangle } from "lucide-react";
 
 export default function QuizAttemptPage({ params }: { params: { id: string } }) {
-  const { data: session } = useSession();
+  const { data: session, status: authStatus } = useSession();
   const [quiz, setQuiz] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -49,9 +49,12 @@ export default function QuizAttemptPage({ params }: { params: { id: string } }) 
     const timeTaken = Math.floor((Date.now() - startTime) / 1000);
 
     try {
+      const passcode = sessionStorage.getItem(`pass_${params.id}`) || "";
       const res = await fetch("/api/attempts", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: passcode
+          ? { "Content-Type": "application/json", "x-quiz-passcode": passcode }
+          : { "Content-Type": "application/json" },
         body: JSON.stringify({
           quizId: params.id,
           answers: answers.filter(a => a !== null).map((a, i) => ({
@@ -83,8 +86,17 @@ export default function QuizAttemptPage({ params }: { params: { id: string } }) 
   useEffect(() => {
     async function fetchQuiz() {
       try {
+        if (authStatus === "loading") return;
+        if (authStatus === "unauthenticated") {
+          signIn(undefined, { callbackUrl: `/quizzes/${params.id}/attempt` });
+          return;
+        }
+
+        const passcode = sessionStorage.getItem(`pass_${params.id}`) || "";
         const [quizRes, userAttemptsRes] = await Promise.all([
-          fetch(`/api/quizzes/${params.id}`),
+          fetch(`/api/quizzes/${params.id}`, {
+            headers: passcode ? { "x-quiz-passcode": passcode } : undefined,
+          }),
           fetch(`/api/attempts?quizId=${params.id}`)
         ]);
 
@@ -138,11 +150,11 @@ export default function QuizAttemptPage({ params }: { params: { id: string } }) 
       } catch (err) {
         console.error(err);
       } finally {
-        setLoading(false);
+        if (authStatus !== "loading") setLoading(false);
       }
     }
     fetchQuiz();
-  }, [params.id]);
+  }, [params.id, authStatus]);
 
   // Global Quiz Timer
   useEffect(() => {
@@ -195,9 +207,12 @@ export default function QuizAttemptPage({ params }: { params: { id: string } }) 
     setSubmitting(true);
     try {
         const timeTaken = Math.floor((Date.now() - startTime) / 1000);
+        const passcode = sessionStorage.getItem(`pass_${params.id}`) || "";
         await fetch("/api/attempts/save", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: passcode
+              ? { "Content-Type": "application/json", "x-quiz-passcode": passcode }
+              : { "Content-Type": "application/json" },
             body: JSON.stringify({
                 quizId: params.id,
                 answers: answers.filter(a => a !== null).map((a, i) => ({

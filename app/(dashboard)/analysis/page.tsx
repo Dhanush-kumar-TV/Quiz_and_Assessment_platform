@@ -33,10 +33,12 @@ export default function AnalysisPage() {
                     fetch("/api/attempts"),
                     fetch("/api/leaderboard")
                 ]);
-                const attemptsData = await attemptsRes.json();
-                const leaderData = await leaderRes.json();
-                setAttempts(attemptsData);
-                setLeaderboard(leaderData);
+                const attemptsData = await attemptsRes.json().catch(() => []);
+                const leaderData = await leaderRes.json().catch(() => []);
+
+                // APIs may return `{ message: ... }` on errors; never assume arrays
+                setAttempts(Array.isArray(attemptsData) ? attemptsData : []);
+                setLeaderboard(Array.isArray(leaderData) ? leaderData : []);
             } catch (err) {
                 console.error("Failed to fetch analytics data", err);
             } finally {
@@ -56,19 +58,20 @@ export default function AnalysisPage() {
     }
 
     // Analytics Calculations
-    const totalAttempts = attempts.length;
+    const attemptsList = Array.isArray(attempts) ? attempts : [];
+    const totalAttempts = attemptsList.length;
     const avgScore = totalAttempts 
-        ? (attempts.reduce((acc, a) => acc + a.percentage, 0) / totalAttempts).toFixed(1) 
+        ? (attemptsList.reduce((acc, a) => acc + (Number(a.percentage) || 0), 0) / totalAttempts).toFixed(1) 
         : 0;
     
     // Dynamic Trend Path Calculation
      const generateTrendPath = () => {
-        if (attempts.length === 0) return "";
-        if (attempts.length === 1) return `M0,${200 - (attempts[0].percentage / 100) * 180} L1000,${200 - (attempts[0].percentage / 100) * 180}`;
-        const data = attempts.slice(0, 10).reverse();
+        if (attemptsList.length === 0) return "";
+        if (attemptsList.length === 1) return `M0,${200 - ((Number(attemptsList[0].percentage) || 0) / 100) * 180} L1000,${200 - ((Number(attemptsList[0].percentage) || 0) / 100) * 180}`;
+        const data = attemptsList.slice(0, 10).reverse();
         const points = data.map((a, i) => {
             const x = (i / (data.length - 1)) * 1000;
-            const y = 200 - (a.percentage / 100) * 180;
+            const y = 200 - ((Number(a.percentage) || 0) / 100) * 180;
             return `${x},${y}`;
         });
         return `M${points.join(" L")}`;
@@ -77,7 +80,7 @@ export default function AnalysisPage() {
     // Calendar Data
     const now = new Date();
     const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-    const activeDays = new Set(attempts.map(a => new Date(a.createdAt).getDate()));
+    const activeDays = new Set(attemptsList.map(a => new Date(a.createdAt).getDate()));
 
     const leaderList = Array.isArray(leaderboard) ? leaderboard : [];
 
@@ -316,7 +319,7 @@ export default function AnalysisPage() {
                         
                          {/* Dynamic Area Chart (SVG) */}
                          <div className="relative h-56 mt-6">
-                            {attempts.length === 0 ? (
+                            {attemptsList.length === 0 ? (
                                 <div className="w-full h-full flex flex-col items-center justify-center border-2 border-dashed border-border rounded-xl">
                                     <BarChart3 className="w-8 h-8 text-muted-foreground/30 mb-2" />
                                     <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">No activity data yet</p>
@@ -339,10 +342,10 @@ export default function AnalysisPage() {
                                         />
                                         
                                         {/* Markers for points */}
-                                        {attempts.slice(0, 10).reverse().map((a, i) => {
-                                            const totalDots = Math.min(attempts.length, 10);
+                                        {attemptsList.slice(0, 10).reverse().map((a, i) => {
+                                            const totalDots = Math.min(attemptsList.length, 10);
                                             const x = totalDots > 1 ? (i / (totalDots - 1)) * 1000 : 500;
-                                            const y = 200 - (a.percentage / 100) * 180;
+                                            const y = 200 - ((Number(a.percentage) || 0) / 100) * 180;
                                             return (
                                                 <circle 
                                                     key={i}
@@ -357,8 +360,8 @@ export default function AnalysisPage() {
                                     </svg>
                                     
                                     <div className="flex justify-between mt-6">
-                                        {attempts.slice(0, 10).reverse().map((a, i) => (
-                                            <span key={i} className="text-[8px] font-black text-muted-foreground uppercase tracking-widest text-center" style={{ width: `${100 / Math.min(attempts.length, 10)}%` }}>
+                                        {attemptsList.slice(0, 10).reverse().map((a, i) => (
+                                            <span key={i} className="text-[8px] font-black text-muted-foreground uppercase tracking-widest text-center" style={{ width: `${100 / Math.min(attemptsList.length, 10)}%` }}>
                                                 {new Date(a.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                                             </span>
                                         ))}

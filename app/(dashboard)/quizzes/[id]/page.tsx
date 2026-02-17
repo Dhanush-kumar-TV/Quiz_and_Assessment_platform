@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Brain, Clock, HelpCircle, Trophy, Play, Edit, Trash2, Loader2, ArrowLeft, TrendingUp } from "lucide-react";
 import Link from "next/link";
 
 export default function QuizDetailsPage({ params }: { params: { id: string } }) {
-  const { data: session } = useSession();
+  const { data: session, status: authStatus } = useSession();
   const [quiz, setQuiz] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -16,6 +16,13 @@ export default function QuizDetailsPage({ params }: { params: { id: string } }) 
   useEffect(() => {
     async function fetchQuiz() {
       try {
+        // Wait until auth state is resolved; avoids a one-time 401 rendering "not found"
+        if (authStatus === "loading") return;
+        if (authStatus === "unauthenticated") {
+          signIn(undefined, { callbackUrl: `/quizzes/${params.id}` });
+          return;
+        }
+
         const res = await fetch(`/api/quizzes/${params.id}`);
         if (!res.ok) {
           const errorData = await res.json().catch(() => ({}));
@@ -31,11 +38,12 @@ export default function QuizDetailsPage({ params }: { params: { id: string } }) 
            router.push("/quizzes");
         }
       } finally {
-        setLoading(false);
+        // If auth is still loading, don't finalize loading state yet
+        if (authStatus !== "loading") setLoading(false);
       }
     }
     fetchQuiz();
-  }, [params.id, router]);
+  }, [params.id, router, authStatus]);
 
   const handleDelete = async () => {
     if (!confirm("Are you sure you want to delete this quiz?")) return;

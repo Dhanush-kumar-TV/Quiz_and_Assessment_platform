@@ -4,6 +4,19 @@ import { authOptions } from "@/lib/auth";
 import connectToDatabase from "@/lib/mongodb";
 import Quiz from "@/lib/models/Quiz";
 import { checkQuizPermission, Permission } from "@/lib/permissions";
+import bcrypt from "bcryptjs";
+
+async function isPasscodeValid(stored: any, provided: string) {
+  const pass = (provided || "").trim();
+  if (!pass) return false;
+  const storedPass = typeof stored === "string" ? stored : "";
+  if (!storedPass) return false;
+  // Backward compatible: support legacy plaintext + bcrypt hashes
+  if (storedPass.startsWith("$2")) {
+    return await bcrypt.compare(pass, storedPass);
+  }
+  return storedPass === pass;
+}
 
 export async function GET(
   req: Request,
@@ -34,10 +47,24 @@ export async function GET(
     // Check if user has permission to view full quiz (Teacher/Creator) or just take it (Student)
     const isCreator = quiz.createdBy.toString() === userId;
     const canViewResults = isCreator || await checkQuizPermission(userId, params.id, Permission.VIEW_RESULTS);
-    const canTakeQuiz = isCreator || await checkQuizPermission(userId, params.id, Permission.TAKE_QUIZ);
+    const hasRoleToTake = isCreator || await checkQuizPermission(userId, params.id, Permission.TAKE_QUIZ);
+
+    // Access rules:
+    // - approval: only users with TAKE_QUIZ role (or creator/teacher) can take
+    // - public/registration: any logged-in user can take if published
+    // - password: requires correct passcode
+    const providedPasscode = req.headers.get("x-quiz-passcode") || "";
+    const passOk = quiz.accessType === "password"
+      ? await isPasscodeValid(quiz.password, providedPasscode)
+      : true;
+
+    const canTakeByAccessType =
+      Boolean(quiz.isPublished) &&
+      quiz.accessType !== "approval" &&
+      (quiz.accessType !== "password" || passOk);
+    const canTakeQuiz = hasRoleToTake || canTakeByAccessType;
 
     if (!canViewResults && !canTakeQuiz) {
-      // If it's a public quiz, they might have TAKE_QUIZ implicitly, but for now we follow the roles
       return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
@@ -90,6 +117,22 @@ export async function PUT(
 
     if (updateData.questions) {
       updateData.totalPoints = updateData.questions.reduce((acc: number, q: any) => acc + Number(q.points || 1), 0);
+    }
+
+    // Handle password hashing updates safely
+    if (updateData.accessType === "password") {
+      // If user didn't enter a new password, keep existing stored password
+      if (typeof updateData.password === "string") {
+        const next = updateData.password.trim();
+        if (next) {
+          updateData.password = await bcrypt.hash(next, 10);
+        } else {
+          delete updateData.password;
+        }
+      }
+    } else if (updateData.accessType) {
+      // If switching away from password access, clear stored password
+      updateData.password = "";
     }
 
     const updatedQuiz = await Quiz.findByIdAndUpdate(params.id, updateData, { new: true });

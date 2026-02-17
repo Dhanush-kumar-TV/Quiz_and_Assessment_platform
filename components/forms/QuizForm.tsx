@@ -68,11 +68,14 @@ export default function QuizForm({ initialData }: { initialData?: any }) {
       return;
     }
 
+    // For new quizzes, automatically set isPublished to true when publishing
+    const shouldPublish = initialData?._id ? isPublished : true;
+
     const payload = { 
       title, 
       description, 
       questions, 
-      isPublished, 
+      isPublished: shouldPublish, 
       showScore, 
       timeLimit: Number(timeLimit),
       shuffleQuestions,
@@ -312,6 +315,20 @@ export default function QuizForm({ initialData }: { initialData?: any }) {
                </div>
 
                <div className="space-y-4">
+                {initialData?._id && (
+                  <div className="flex items-center justify-between p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+                    <div>
+                       <p className="font-black text-sm">Publish Quiz</p>
+                       <p className="text-xs text-muted-foreground">Make quiz visible to other users</p>
+                    </div>
+                    <input
+                        type="checkbox"
+                        checked={isPublished}
+                        onChange={(e) => setIsPublished(e.target.checked)}
+                        className="w-7 h-7 rounded-xl text-primary focus:ring-primary border-slate-200 dark:border-slate-700"
+                    />
+                  </div>
+                )}
                 <div className="flex items-center justify-between p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
                     <div>
                        <p className="font-black text-sm">Show Evaluation</p>
@@ -359,7 +376,7 @@ export default function QuizForm({ initialData }: { initialData?: any }) {
               <div className="space-y-3">
                 <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Access Method</label>
                 <div className="grid grid-cols-1 gap-3">
-                  {['public', 'password', 'registration'].map((type) => (
+                  {['public', 'password', 'registration', 'approval'].map((type) => (
                     <button
                       key={type}
                       type="button"
@@ -379,6 +396,7 @@ export default function QuizForm({ initialData }: { initialData?: any }) {
                           {type === 'public' && "Anyone with the link can participate."}
                           {type === 'password' && "Requires a shared passcode to enter."}
                           {type === 'registration' && "Collect student info before they start."}
+                          {type === 'approval' && "Users must request access. You approve/deny requests."}
                         </p>
                       </div>
                     </button>
@@ -424,6 +442,15 @@ export default function QuizForm({ initialData }: { initialData?: any }) {
                       </button>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {accessType === 'approval' && (
+                <div className="p-5 rounded-2xl bg-amber-50/60 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/30">
+                  <p className="text-sm font-black text-amber-700 dark:text-amber-300">Approval required</p>
+                  <p className="text-xs font-bold text-amber-700/80 dark:text-amber-300/80 mt-1">
+                    Participants must be logged in and will request access. You can grant or deny requests from the Collaborators tab.
+                  </p>
                 </div>
               )}
             </div>
@@ -518,12 +545,15 @@ export default function QuizForm({ initialData }: { initialData?: any }) {
 
 function RolesManagement({ quizId }: { quizId: string }) {
   const [collaborators, setCollaborators] = useState<any[]>([]);
+  const [accessRequests, setAccessRequests] = useState<any[]>([]);
   const [newEmail, setNewEmail] = useState("");
   const [newRole, setNewRole] = useState("teacher");
   const [loading, setLoading] = useState(false);
+  const [requestsLoading, setRequestsLoading] = useState(false);
 
   useEffect(() => {
     fetchRoles();
+    fetchAccessRequests();
   }, []);
 
   async function fetchRoles() {
@@ -536,6 +566,41 @@ function RolesManagement({ quizId }: { quizId: string }) {
       }
     } catch (err) {
       console.error(err);
+    }
+  }
+
+  async function fetchAccessRequests() {
+    try {
+      setRequestsLoading(true);
+      const res = await fetch(`/api/quizzes/${quizId}/access-requests?t=${Date.now()}`, { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        setAccessRequests(Array.isArray(data) ? data : []);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setRequestsLoading(false);
+    }
+  }
+
+  async function decideAccessRequest(requestId: string, action: "approve" | "deny") {
+    try {
+      const res = await fetch(`/api/quizzes/${quizId}/access-requests/${requestId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.message || "Failed to update request");
+        return;
+      }
+      await fetchAccessRequests();
+      // If approved, the user will now have 'student' role and can take quiz
+    } catch (err) {
+      console.error(err);
+      alert("An error occurred while updating the request.");
     }
   }
 
@@ -627,6 +692,64 @@ function RolesManagement({ quizId }: { quizId: string }) {
         </div>
 
         <div className="lg:col-span-2">
+          {/* Pending Access Requests */}
+          <div className="mb-8 rounded-3xl border-2 border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="font-black text-sm uppercase tracking-widest text-muted-foreground">Access Requests</h3>
+                <p className="text-xs font-bold text-muted-foreground mt-1">
+                  For quizzes using <span className="font-black">approval</span> access.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={fetchAccessRequests}
+                disabled={requestsLoading}
+                className="px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-black text-xs hover:bg-slate-100 dark:hover:bg-slate-800 transition-all disabled:opacity-50"
+              >
+                {requestsLoading ? "Refreshing..." : "Refresh"}
+              </button>
+            </div>
+
+            {accessRequests.length === 0 ? (
+              <p className="text-sm font-bold text-slate-400 text-center py-6">
+                No pending requests.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {accessRequests.map((r: any) => (
+                  <div
+                    key={r._id}
+                    className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800"
+                  >
+                    <div className="min-w-0">
+                      <p className="font-black text-sm truncate">{r.name || r.userId?.name || "Request"}</p>
+                      <p className="text-xs font-bold text-muted-foreground truncate">
+                        {r.userId?.email || "Unknown email"}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => decideAccessRequest(r._id, "approve")}
+                        className="px-4 py-2 rounded-xl bg-emerald-600 text-white font-black text-xs hover:bg-emerald-700 transition-all"
+                      >
+                        Grant
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => decideAccessRequest(r._id, "deny")}
+                        className="px-4 py-2 rounded-xl bg-red-600 text-white font-black text-xs hover:bg-red-700 transition-all"
+                      >
+                        Deny
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div className="rounded-3xl border-2 border-slate-100 dark:border-slate-800 overflow-hidden">
             <table className="w-full text-left font-bold text-sm">
               <thead className="bg-slate-50 dark:bg-slate-800/50 text-muted-foreground border-b border-slate-100 dark:border-slate-800">

@@ -5,20 +5,30 @@ import connectToDatabase from "@/lib/mongodb";
 import Quiz from "@/lib/models/Quiz";
 import QuizRole from "@/lib/models/QuizRole";
 import { nanoid } from "nanoid";
+import bcrypt from "bcryptjs";
 
 export async function GET(req: Request) {
   try {
     await connectToDatabase();
-    // Only return published quizzes for the general list
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get("userId");
+    const publicOnly = searchParams.get("publicOnly") === "true";
     
-    let query: any = { isPublished: true };
-    if (userId) {
-      // Find all quiz IDs where the user has a role
+    let query: any = {};
+    
+    if (publicOnly || !userId) {
+      // Public view: only show published quizzes
+      query = { isPublished: true };
+    } else if (userId) {
+      // User-specific view: show quizzes where user has role OR created, but still filter published for public visibility
       const roles = await QuizRole.find({ userId });
       const quizIds = roles.map(r => r.quizId);
-      query = { $or: [{ _id: { $in: quizIds } }, { createdBy: userId }] };
+      query = { 
+        $or: [
+          { _id: { $in: quizIds } }, 
+          { createdBy: userId }
+        ]
+      };
     }
 
     const quizzes = await Quiz.find(query).sort({ createdAt: -1 });
@@ -36,7 +46,21 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { title, description, questions, isPublished, timeLimit, showScore } = body;
+    const { 
+      title, 
+      description, 
+      questions, 
+      isPublished, 
+      timeLimit, 
+      showScore,
+      shuffleQuestions,
+      shuffleOptions,
+      maxAttempts,
+      emailResults,
+      accessType,
+      password,
+      registrationFields
+    } = body;
 
     if (!title || !description || !questions || questions.length === 0) {
       return NextResponse.json({ message: "Missing fields" }, { status: 400 });
@@ -54,8 +78,18 @@ export async function POST(req: Request) {
       questions,
       totalPoints,
       timeLimit: Number(timeLimit) || 0,
-      isPublished: isPublished || false,
+      isPublished: isPublished !== undefined ? isPublished : true, // Default to true for new quizzes
       showScore: showScore !== undefined ? showScore : true,
+      shuffleQuestions: shuffleQuestions || false,
+      shuffleOptions: shuffleOptions || false,
+      maxAttempts: Number(maxAttempts) || 0,
+      emailResults: emailResults || false,
+      accessType: accessType || 'public',
+      password:
+        (accessType === "password" && typeof password === "string" && password.trim())
+          ? await bcrypt.hash(password.trim(), 10)
+          : "",
+      registrationFields: registrationFields || [],
       createdBy: (session.user as any).id,
       publicUrl,
       embedCode: `<iframe src="${process.env.NEXTAUTH_URL}${publicUrl}" width="100%" height="600px" frameborder="0"></iframe>`

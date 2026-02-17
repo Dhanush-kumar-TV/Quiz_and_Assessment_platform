@@ -18,6 +18,10 @@ export async function GET(
       return NextResponse.json({ message: "Quiz not found" }, { status: 404 });
     }
 
+    if (!quiz.isPublished) {
+      return NextResponse.json({ message: "Quiz not found" }, { status: 404 });
+    }
+
     // Return only necessary non-sensitive info for the landing gate
     const safeQuiz = {
       _id: quiz._id,

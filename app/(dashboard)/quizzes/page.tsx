@@ -12,7 +12,8 @@ export default function QuizzesPage() {
   useEffect(() => {
     async function fetchQuizzes() {
       try {
-        const res = await fetch("/api/quizzes");
+        // Explicitly request only published quizzes for public viewing
+        const res = await fetch("/api/quizzes?publicOnly=true");
         const data = await res.json();
         setQuizzes(data);
       } catch (err) {
