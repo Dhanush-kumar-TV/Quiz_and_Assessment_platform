@@ -1,0 +1,144 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 45 20% 98%;      /* Very light cream #FAF9F6 */
+  --foreground: 32 20% 20%;      /* Dark brownish gray #3D352E */
+  --card: 30 20% 94%;           /* Latte Brown #F5EFE7 */
+  --card-foreground: 32 20% 20%;
+  --popover: 30 20% 94%;
+  --popover-foreground: 32 20% 20%;
+  --primary: 211 100% 50%;        /* Action Blue #007BFF */
+  --primary-foreground: 45 20% 98%;
+  --secondary: 238 40% 90%;       /* Soft Lavender Blue Gray */
+  --secondary-foreground: 32 20% 35%;
+  --muted: 32 29% 65%;
+  --muted-foreground: 32 20% 40%;
+  --accent: 48 100% 50%;          /* Solar Yellow #FFCC00 */
+  --accent-foreground: 32 20% 20%;
+  --border: 238 40% 90%;          /* Light blue-ish border */
+  --input: 238 40% 90%;
+  --ring: 211 100% 50%;
+  --radius: 1.5rem;
+
+  /* Custom Palette Utilities (Light Mode optimized) */
+  --mint: 145 63% 42%;           /* Slightly deeper Mint for light background */
+  --lavender: 241 100% 64%;      /* Slightly deeper Lavender */
+}
+
+.dark {
+  --background: 238 75% 6%;      /* Deep Midnight Navy #05062D */
+  --foreground: 210 40% 98%;     /* Light Gray/White */
+  --card: 0 0% 15%;              /* Dark Gray #262626 */
+  --card-foreground: 210 40% 98%;
+  --popover: 0 0% 15%;
+  --popover-foreground: 210 40% 98%;
+  --primary: 211 100% 50%;       /* Action Blue #007BFF */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 0 0% 20%;         /* Slightly Lighter Gray */
+  --secondary-foreground: 210 40% 98%;
+  --muted: 0 0% 20%;
+  --muted-foreground: 215 20% 65%;
+  --accent: 48 100% 50%;         /* Solar Yellow #FFCC00 */
+  --accent-foreground: 238 75% 6%;
+  --border: 0 0% 22%;            /* Gray border */
+  --input: 0 0% 22%;
+  --ring: 211 100% 50%;
+
+  /* Custom Palette Utilities */
+  --mint: 145 63% 49%;           /* Mint Green #2ECC71 */
+  --lavender: 241 100% 74%;      /* Lavender #7D7AFF */
+}
+
+body {
+  color: hsl(var(--foreground));
+  background: hsl(var(--background));
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@layer components {
+  .animate-shake {
+    animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+  }
+}
+
+@keyframes shake {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+  40%, 60% { transform: translate3d(4px, 0, 0); }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 20px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #cbd5e1;
+  border-radius: 20px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+/* 3D Brain Canvas Animations */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes glow {
+  0%, 100% {
+    filter: drop-shadow(0 0 20px rgba(94, 130, 107, 0.3));
+  }
+  50% {
+    filter: drop-shadow(0 0 40px rgba(94, 130, 107, 0.6));
+  }
+}
+
+.brain-canvas-wrapper {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Particle effect enhancement */
+@keyframes particle-fade {
+  0%, 100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Smooth transitions for hero content */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero-content {
+  animation: fadeInUp 1s ease-out;
+}

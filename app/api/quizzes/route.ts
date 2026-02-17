@@ -1,0 +1,78 @@
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import connectToDatabase from "@/lib/mongodb";
+import Quiz from "@/lib/models/Quiz";
+import QuizRole from "@/lib/models/QuizRole";
+import { nanoid } from "nanoid";
+
+export async function GET(req: Request) {
+  try {
+    await connectToDatabase();
+    // Only return published quizzes for the general list
+    const { searchParams } = new URL(req.url);
+    const userId = searchParams.get("userId");
+    
+    let query: any = { isPublished: true };
+    if (userId) {
+      // Find all quiz IDs where the user has a role
+      const roles = await QuizRole.find({ userId });
+      const quizIds = roles.map(r => r.quizId);
+      query = { $or: [{ _id: { $in: quizIds } }, { createdBy: userId }] };
+    }
+
+    const quizzes = await Quiz.find(query).sort({ createdAt: -1 });
+    return NextResponse.json(quizzes);
+  } catch (error: any) {
+    return NextResponse.json({ message: error.message }, { status: 500 });
+  }
+}
+
+export async function POST(req: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await req.json();
+    const { title, description, questions, isPublished, timeLimit, showScore } = body;
+
+    if (!title || !description || !questions || questions.length === 0) {
+      return NextResponse.json({ message: "Missing fields" }, { status: 400 });
+    }
+
+    await connectToDatabase();
+
+    const totalPoints = questions.reduce((acc: number, q: any) => acc + (q.points || 1), 0);
+
+    const publicUrl = `/q/${nanoid(10)}`;
+
+    const quiz = await Quiz.create({
+      title,
+      description,
+      questions,
+      totalPoints,
+      timeLimit: Number(timeLimit) || 0,
+      isPublished: isPublished || false,
+      showScore: showScore !== undefined ? showScore : true,
+      createdBy: (session.user as any).id,
+      publicUrl,
+      embedCode: `<iframe src="${process.env.NEXTAUTH_URL}${publicUrl}" width="100%" height="600px" frameborder="0"></iframe>`
+    });
+
+    // 2. Automatically assign Creator role
+    await QuizRole.create({
+      quizId: quiz._id,
+      userId: (session.user as any).id,
+      role: 'creator',
+      assignedBy: (session.user as any).id,
+    });
+
+    console.log("DEBUG: POST /api/quizzes - Created Quiz & Role");
+
+    return NextResponse.json(quiz, { status: 201 });
+  } catch (error: any) {
+    return NextResponse.json({ message: error.message }, { status: 500 });
+  }
+}
