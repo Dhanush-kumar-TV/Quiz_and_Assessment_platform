@@ -90,7 +90,7 @@ interface ReportData { quiz: { title: string; questions: QuizQuestion[] }; attem
             </div>
 
             {/* Quick Stats Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
                 <StatCard 
                     label="Total Participants" 
                     value={stats.totalAttempts} 
@@ -247,13 +247,15 @@ function StatCard({ label, value, sub, icon, color }: { label: string; value: st
     };
 
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all">
-            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-6 shadow-sm border border-transparent ${colorClasses[color]}`}>
-                {icon}
+        <div className="bg-white dark:bg-slate-900 rounded-2xl md:rounded-[2.5rem] p-4 md:p-8 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col md:block">
+            <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center mb-3 md:mb-6 shadow-sm border border-transparent ${colorClasses[color]}`}>
+                {React.cloneElement(icon as React.ReactElement, { className: "w-5 h-5 md:w-6 md:h-6" })}
             </div>
-            <p className="text-sm font-black uppercase tracking-widest text-muted-foreground mb-1">{label}</p>
-            <h3 className="text-4xl font-black text-slate-900 dark:text-white mb-2">{value}</h3>
-            <p className="text-xs text-muted-foreground font-medium">{sub}</p>
+            <div>
+                <p className="text-xs md:text-sm font-black uppercase tracking-widest text-muted-foreground mb-1">{label}</p>
+                <h3 className="text-2xl md:text-4xl font-black text-slate-900 dark:text-white mb-1 md:mb-2">{value}</h3>
+                <p className="text-[10px] md:text-xs text-muted-foreground font-medium">{sub}</p>
+            </div>
         </div>
     );
 }

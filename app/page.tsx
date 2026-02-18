@@ -51,13 +51,13 @@ export default function Home() {
             transition={{ duration: 0.8 }}
             className="max-w-4xl"
           >
-            <span className="inline-block py-1 px-3 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-bold mb-6 tracking-wider uppercase">
+            <span className="inline-block py-1 px-3 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs md:text-sm font-bold mb-4 md:mb-6 tracking-wider uppercase">
               Next-Gen Assessment Platform
             </span>
-            <h1 className="text-6xl md:text-8xl font-black text-slate-900 dark:text-white mb-8 tracking-tight leading-[1.1]">
+            <h1 className="text-4xl md:text-6xl lg:text-8xl font-black text-slate-900 dark:text-white mb-6 md:mb-8 tracking-tight leading-[1.1]">
               The smartest way to <span className="text-primary italic">evaluate</span>
             </h1>
-            <p className="text-xl md:text-2xl text-slate-600 dark:text-slate-400 mb-12 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-lg md:text-2xl text-slate-600 dark:text-slate-400 mb-8 md:mb-12 max-w-2xl mx-auto leading-relaxed">
               Create, manage, and analyze quizzes with cutting-edge AI and beautiful analytics.
             </p>
             
@@ -84,7 +84,8 @@ export default function Home() {
       </section>
 
       {/* Feature Sections - Interleaved with Grids */}
-      <section className="w-full bg-background py-20">
+      {/* Feature Sections - Interleaved with Grids */}
+      <section className="w-full bg-background py-12 md:py-20">
         <div className="container mx-auto px-6">
           
           {/* 1. Authoring Tool */}

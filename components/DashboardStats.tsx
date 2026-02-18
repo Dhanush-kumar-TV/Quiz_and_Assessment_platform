@@ -32,15 +32,15 @@ export default function DashboardStats({ stats }: { stats: DashboardStatsData | 
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
       {cards.map((card, i) => (
-        <div key={i} className="bg-card p-6 rounded-3xl shadow-sm border border-border flex items-center gap-5">
-          <div className={`${card.bg} w-14 h-14 rounded-2xl flex items-center justify-center`}>
+        <div key={i} className="bg-card p-4 md:p-6 rounded-2xl md:rounded-3xl shadow-sm border border-border flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-5">
+          <div className={`${card.bg} w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0`}>
             {card.icon}
           </div>
           <div>
-            <p className="text-sm font-medium text-muted-foreground">{card.label}</p>
-            <p className="text-2xl font-black text-foreground">{card.value}</p>
+            <p className="text-xs md:text-sm font-medium text-muted-foreground truncate">{card.label}</p>
+            <p className="text-lg md:text-2xl font-black text-foreground">{card.value}</p>
           </div>
         </div>
       ))}
