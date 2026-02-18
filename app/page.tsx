@@ -44,32 +44,32 @@ export default function Home() {
            <BrainCanvas />
         </div>
         
-        <div className="container relative z-10 mx-auto px-6 pt-20 flex flex-col items-center text-center">
+        <div className="container relative z-10 mx-auto px-4 pt-12 md:pt-20 flex flex-col items-center text-center h-screen md:h-auto justify-center md:justify-start">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             className="max-w-4xl"
           >
-            <span className="inline-block py-1 px-3 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs md:text-sm font-bold mb-4 md:mb-6 tracking-wider uppercase">
+            <span className="inline-block py-1 px-3 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] md:text-sm font-bold mb-3 md:mb-6 tracking-wider uppercase">
               Next-Gen Assessment Platform
             </span>
-            <h1 className="text-4xl md:text-6xl lg:text-8xl font-black text-slate-900 dark:text-white mb-6 md:mb-8 tracking-tight leading-[1.1]">
+            <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-8xl font-black text-slate-900 dark:text-white mb-4 md:mb-8 tracking-tight leading-[1.1]">
               The smartest way to <span className="text-primary italic">evaluate</span>
             </h1>
-            <p className="text-lg md:text-2xl text-slate-600 dark:text-slate-400 mb-8 md:mb-12 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-sm sm:text-base md:text-2xl text-slate-600 dark:text-slate-400 mb-6 md:mb-12 max-w-2xl mx-auto leading-relaxed px-2">
               Create, manage, and analyze quizzes with cutting-edge AI and beautiful analytics.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-6 justify-center">
-              <Link href={session ? "/dashboard" : "/login"}>
-                <button className="h-14 px-8 text-lg font-bold rounded-2xl bg-primary hover:bg-primary/90 text-white shadow-[0_0_20px_rgba(59,130,246,0.5)] transition-all hover:scale-105 flex items-center">
-                  {session ? "Go to Dashboard" : "Start Creating"} <ArrowRight className="ml-2 w-5 h-5" />
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 justify-center w-full sm:w-auto px-4 sm:px-0">
+              <Link href={session ? "/dashboard" : "/login"} className="w-full sm:w-auto">
+                <button className="h-10 sm:h-14 px-6 sm:px-8 text-sm sm:text-lg font-bold rounded-xl sm:rounded-2xl bg-primary hover:bg-primary/90 text-white shadow-[0_0_20px_rgba(59,130,246,0.5)] transition-all hover:scale-105 flex items-center justify-center w-full sm:w-auto">
+                  {session ? "Go to Dashboard" : "Start Creating"} <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
               </Link>
               {!session && (
-                <Link href="/register">
-                    <button className="h-14 px-8 text-lg font-bold rounded-2xl border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-all">
+                <Link href="/register" className="w-full sm:w-auto">
+                    <button className="h-10 sm:h-14 px-6 sm:px-8 text-sm sm:text-lg font-bold rounded-xl sm:rounded-2xl border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-all w-full sm:w-auto">
                       Sign Up Free
                     </button>
                 </Link>
