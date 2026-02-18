@@ -13,8 +13,8 @@ export default function DashboardPage() {
     collaborations: number;
     attempts: number;
     avgScore: string | number;
-    recentQuizzes: { _id: string; title: string; createdBy: string }[];
-    recentCollaborations: { _id: string; title: string; createdBy: string }[];
+    recentQuizzes: { _id: string; title: string; createdBy: string; createdAt: string }[];
+    recentCollaborations: { _id: string; title: string; createdBy: string; createdAt: string }[];
     recentAttempts: { _id: string; quizId: { title: string }; percentage: number; createdAt: string }[];
   } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -43,8 +43,8 @@ export default function DashboardPage() {
           collaborations: collaborations.length,
           attempts: totalAttempts,
           avgScore: averageScore,
-          recentQuizzes: createdQuizzes.slice(0, 5) as { _id: string; title: string; createdBy: string }[],
-          recentCollaborations: collaborations.slice(0, 5) as { _id: string; title: string; createdBy: string }[],
+          recentQuizzes: createdQuizzes.slice(0, 5) as { _id: string; title: string; createdBy: string; createdAt: string }[],
+          recentCollaborations: collaborations.slice(0, 5) as { _id: string; title: string; createdBy: string; createdAt: string }[],
           recentAttempts: attempts.slice(0, 5) as { _id: string; quizId: { title: string }; percentage: number; createdAt: string }[],
         });
       } catch (error) {

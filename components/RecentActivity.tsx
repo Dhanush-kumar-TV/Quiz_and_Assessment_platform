@@ -4,7 +4,7 @@ import { ChevronRight, Calendar, Brain, CheckCircle } from "lucide-react";
 type ActivityItem = {
   _id: string;
   title?: string;
-  createdAt: string;
+  createdAt?: string;
   percentage?: number;
   quizId?: { title: string };
 };
@@ -44,7 +44,7 @@ export default function RecentActivity({ title, items, type }: { title: string, 
                   <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
                     <span className="flex items-center gap-1">
                       <Calendar className="w-3 h-3" />
-                      {new Date(item.createdAt).toLocaleDateString()}
+                      {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A'}
                     </span>
                     {type === 'attempt' && (
                         <span className="font-bold text-emerald-600 dark:text-[hsl(var(--mint))]">Score: {item.percentage}%</span>
