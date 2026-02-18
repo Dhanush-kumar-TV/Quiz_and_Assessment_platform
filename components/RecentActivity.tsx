@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ChevronRight, Calendar, Brain, CheckCircle } from "lucide-react";
 
-type ActivityItem = {
+export type ActivityItem = {
   _id: string;
   title?: string;
   createdAt?: string;

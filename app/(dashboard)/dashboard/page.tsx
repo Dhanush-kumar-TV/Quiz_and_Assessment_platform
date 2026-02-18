@@ -3,7 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import DashboardStats from "@/components/DashboardStats";
-import RecentActivity from "@/components/RecentActivity";
+import RecentActivity, { ActivityItem } from "@/components/RecentActivity";
 import { Loader2 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -13,9 +13,9 @@ export default function DashboardPage() {
     collaborations: number;
     attempts: number;
     avgScore: string | number;
-    recentQuizzes: { _id: string; title: string; createdBy: string; createdAt: string }[];
-    recentCollaborations: { _id: string; title: string; createdBy: string; createdAt: string }[];
-    recentAttempts: { _id: string; quizId: { title: string }; percentage: number; createdAt: string }[];
+    recentQuizzes: ActivityItem[];
+    recentCollaborations: ActivityItem[];
+    recentAttempts: ActivityItem[];
   } | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -43,9 +43,9 @@ export default function DashboardPage() {
           collaborations: collaborations.length,
           attempts: totalAttempts,
           avgScore: averageScore,
-          recentQuizzes: createdQuizzes.slice(0, 5) as { _id: string; title: string; createdBy: string; createdAt: string }[],
-          recentCollaborations: collaborations.slice(0, 5) as { _id: string; title: string; createdBy: string; createdAt: string }[],
-          recentAttempts: attempts.slice(0, 5) as { _id: string; quizId: { title: string }; percentage: number; createdAt: string }[],
+          recentQuizzes: createdQuizzes.slice(0, 5) as ActivityItem[],
+          recentCollaborations: collaborations.slice(0, 5) as ActivityItem[],
+          recentAttempts: attempts.slice(0, 5) as ActivityItem[],
         });
       } catch (error) {
         console.error("Failed to fetch dashboard data", error);

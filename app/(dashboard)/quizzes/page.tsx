@@ -11,6 +11,7 @@ interface Quiz {
     questions: { questionText: string }[];
     isPublic: boolean;
     createdBy: string;
+    totalPoints: number;
 }
 
 export default function QuizzesPage() {
