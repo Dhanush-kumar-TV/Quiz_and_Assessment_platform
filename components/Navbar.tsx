@@ -19,6 +19,9 @@ export default function Navbar() {
 
   if (!mounted) return null;
 
+  // Hide Navbar on quiz attempt pages for immersive experience
+  if (pathname.includes('/attempt')) return null;
+
   return (
     <nav className="bg-background/80 backdrop-blur-md shadow-sm border-b border-border sticky top-0 z-50">
       <div className="container mx-auto px-4 h-20 flex items-center justify-between">

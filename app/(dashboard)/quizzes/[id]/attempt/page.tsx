@@ -331,46 +331,36 @@ export default function QuizAttemptPage({ params }: { params: { id: string } }) 
   const progress = ((currentQuestionIndex + 1) / quiz.questions.length) * 100;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 pb-32">
-      {/* Header Info */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <button 
-            onClick={handleQuit}
-            className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-card border border-border text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 hover:border-red-100 transition-all shadow-sm font-bold group"
-          >
-            <AlertTriangle className="w-5 h-5 group-hover:animate-bounce" />
-            <span>Quit</span>
-          </button>
-          <div>
-             <h1 className="text-2xl font-black text-slate-900 line-clamp-1">{quiz?.title}</h1>
-             <div className="flex items-center gap-4 text-sm font-bold text-slate-400 mt-1">
-                  <span>Question {currentQuestionIndex + 1} of {quiz?.questions.length}</span>
-                   <span className={`flex items-center gap-1 ${timeLeft !== null && timeLeft < 60 ? "text-red-500 animate-pulse" : ""}`}>
-                    <Timer className="w-4 h-4" /> 
-                    {timeLeft !== null ? formatTime(timeLeft) : "No Time Limit"}
-                  </span>
-             </div>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-             <button 
-                onClick={saveProgress}
-                disabled={submitting || !quiz}
-                className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-card border border-border text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all shadow-sm font-bold group"
-              >
-                <span className="material-icons text-xl group-hover:rotate-12 transition-transform">save</span>
-                <span>Save Later</span>
-              </button>
-            <div className="h-2 w-full md:w-64 bg-secondary rounded-full overflow-hidden">
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Minimal Top Bar */}
+      <div className="fixed top-0 left-0 right-0 p-4 z-50 flex items-center justify-between bg-background/80 backdrop-blur-sm">
+        <button 
+          onClick={handleQuit}
+          className="p-2 rounded-full hover:bg-secondary transition-colors"
+          aria-label="Quit Quiz"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+
+        <div className="flex-1 max-w-md mx-4">
+             <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
                 <div 
-                    className="h-full bg-primary transition-all duration-500" 
+                    className="h-full bg-primary transition-all duration-500 ease-out" 
                     style={{ width: `${progress}%` }}
                 ></div>
             </div>
         </div>
+
+        <div className={`text-sm font-bold ${timeLeft !== null && timeLeft < 60 ? "text-red-500 animate-pulse" : "text-muted-foreground"}`}>
+             {timeLeft !== null ? formatTime(timeLeft) : <span className="text-xs opacity-50">NO LIMIT</span>}
+        </div>
       </div>
 
+      {/* Main Content Area - Centered */}
+      <div className="flex-1 flex flex-col justify-center max-w-2xl mx-auto w-full px-6 py-20">
         <QuestionDisplay 
             question={quiz.questions[currentQuestionIndex]} 
             currentIndex={currentQuestionIndex}
@@ -379,43 +369,35 @@ export default function QuizAttemptPage({ params }: { params: { id: string } }) 
             onSelect={(optionIndex) => handleSelectOption(optionIndex)}
             questionTimeLeft={questionTimeLeft}
         />
+      </div>
 
-      {/* Navigation Controls */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-md border-t border-border p-6 z-40">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
+      {/* Bottom Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/90 backdrop-blur-md border-t border-border md:border-none md:bg-transparent">
+        <div className="max-w-2xl mx-auto flex items-center justify-between gap-4">
            <button 
                 onClick={prevQuestion}
                 disabled={currentQuestionIndex === 0}
-                className="flex items-center gap-2 px-6 py-4 font-bold text-muted-foreground hover:text-foreground disabled:opacity-0 transition-all"
+                className="px-6 py-4 rounded-xl font-bold text-muted-foreground hover:bg-secondary disabled:opacity-0 transition-all"
            >
-                <ChevronLeft className="w-5 h-5" />
-                Previous
+                <ChevronLeft className="w-6 h-6" />
            </button>
 
-           <div className="flex items-center gap-4">
-                {quiz && currentQuestionIndex < quiz.questions.length - 1 ? (
-                    <button 
-                        onClick={nextQuestion}
-                        className="bg-primary text-primary-foreground px-10 py-4 rounded-2xl font-black flex items-center gap-2 hover:opacity-90 transition-all shadow-xl shadow-slate-100/50 dark:shadow-none"
-                    >
-                        Next Question
-                        <ChevronRight className="w-5 h-5" />
-                    </button>
-                ) : (
-                    <button 
-                        onClick={() => submitQuiz()}
-                        disabled={submitting}
-                        className="bg-emerald-600 text-white px-10 py-4 rounded-2xl font-black flex items-center gap-2 hover:opacity-90 transition-all shadow-xl shadow-emerald-100/50 dark:shadow-none disabled:opacity-50"
-                    >
-                        {submitting ? "Submitting..." : (
-                            <>
-                                <Send className="w-5 h-5" />
-                                Submit Quiz
-                            </>
-                        )}
-                    </button>
-                )}
-           </div>
+            {quiz && currentQuestionIndex < quiz.questions.length - 1 ? (
+                <button 
+                    onClick={nextQuestion}
+                    className="flex-1 bg-primary text-primary-foreground h-14 rounded-2xl font-black text-lg hover:opacity-90 transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2"
+                >
+                    Next <ChevronRight className="w-5 h-5" />
+                </button>
+            ) : (
+                <button 
+                    onClick={() => submitQuiz()}
+                    disabled={submitting}
+                    className="flex-1 bg-emerald-600 text-white h-14 rounded-2xl font-black text-lg hover:opacity-90 transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                    {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Submit"}
+                </button>
+            )}
         </div>
       </div>
     </div>
