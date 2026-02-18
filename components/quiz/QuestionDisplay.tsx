@@ -1,7 +1,24 @@
 "use client";
 
-import { CheckCircle2, Circle, Image as ImageIcon } from "lucide-react";
+import { CheckCircle2, Image as ImageIcon } from "lucide-react";
 import Image from "next/image";
+
+type QuestionOption = {
+  text: string;
+  isCorrect: boolean;
+  image?: string;
+};
+
+type Question = {
+  type?: string;
+  questionText: string;
+  options: QuestionOption[];
+  points?: number;
+  required?: boolean;
+  timeLimit?: number;
+  category?: string;
+  image?: string;
+};
 
 export default function QuestionDisplay({ 
   question, 
@@ -11,7 +28,7 @@ export default function QuestionDisplay({
   onSelect,
   questionTimeLeft = null
 }: { 
-  question: any, 
+  question: Question, 
   currentIndex: number, 
   totalQuestions: number,
   selectedOption: number | null,
@@ -49,7 +66,7 @@ export default function QuestionDisplay({
         </h2>
 
         <div className={`grid gap-4 ${question.type === 'picture-choice' ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}`}>
-          {question.options.map((option: any, index: number) => {
+          {question.options.map((option: QuestionOption, index: number) => {
             const isSelected = selectedOption === index;
             const isPictureChoice = question.type === 'picture-choice';
 

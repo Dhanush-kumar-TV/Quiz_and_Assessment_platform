@@ -29,7 +29,7 @@ export default function QuizForm({ initialData }: { initialData?: { _id?: string
   const [maxAttempts, setMaxAttempts] = useState(initialData?.maxAttempts || 0);
   const [emailResults, setEmailResults] = useState(initialData?.emailResults || false);
   const [loading, setLoading] = useState(false);
-  const [_error, setError] = useState("");
+  const [error, setError] = useState("");
   const [accessType, setAccessType] = useState(initialData?.accessType || "public");
   const [password, setPassword] = useState(""); // We don't show the hashed password
   const [registrationFields, setRegistrationFields] = useState<string[]>(initialData?.registrationFields || ["name", "email"]);
@@ -494,6 +494,11 @@ export default function QuizForm({ initialData }: { initialData?: { _id?: string
 
       {activeTab !== 'roles' && (
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-full max-w-4xl px-6 z-40">
+          {error && (
+            <div className="mb-2 px-4 py-2 bg-red-50 border border-red-200 text-red-600 text-sm font-bold rounded-xl text-center">
+              {error}
+            </div>
+          )}
           <div className="flex items-center justify-between p-6 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800">
             <div className="flex items-center gap-4">
               <div className="flex flex-col">

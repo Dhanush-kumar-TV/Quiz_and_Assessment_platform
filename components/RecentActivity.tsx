@@ -1,7 +1,15 @@
 import Link from "next/link";
 import { ChevronRight, Calendar, Brain, CheckCircle } from "lucide-react";
 
-export default function RecentActivity({ title, items, type }: { title: string, items: any[], type: 'quiz' | 'attempt' }) {
+type ActivityItem = {
+  _id: string;
+  title?: string;
+  createdAt: string;
+  percentage?: number;
+  quizId?: { title: string };
+};
+
+export default function RecentActivity({ title, items, type }: { title: string, items: ActivityItem[], type: 'quiz' | 'attempt' }) {
   return (
     <div className="bg-card border border-border rounded-3xl shadow-sm overflow-hidden">
       <div className="p-6 border-b border-border flex items-center justify-between">
@@ -31,7 +39,7 @@ export default function RecentActivity({ title, items, type }: { title: string, 
                 </div>
                 <div>
                   <h4 className="font-bold text-foreground group-hover:text-primary transition-colors">
-                    {type === 'quiz' ? item.title : item.quizId.title}
+                    {type === 'quiz' ? item.title : item.quizId?.title}
                   </h4>
                   <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
                     <span className="flex items-center gap-1">

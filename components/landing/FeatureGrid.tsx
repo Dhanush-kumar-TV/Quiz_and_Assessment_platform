@@ -11,7 +11,6 @@ import {
   Layers, 
   Columns, 
   ImageIcon,
-  MessageSquare,
   Timer,
   AlertCircle,
   Shuffle,

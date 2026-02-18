@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef } from "react";
 import { CheckCircle2, Layout, Palette, Settings2, Zap, Lock } from "lucide-react";
-import Link from "next/link";
 
 interface FeatureProps {
   title: string;

@@ -1,6 +1,14 @@
 import QuizCard from "./QuizCard";
 
-export default function QuizList({ quizzes }: { quizzes: any[] }) {
+type Quiz = {
+  _id: string;
+  title: string;
+  description: string;
+  questions: unknown[];
+  totalPoints: number;
+};
+
+export default function QuizList({ quizzes }: { quizzes: Quiz[] }) {
   if (quizzes.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">

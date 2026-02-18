@@ -1,7 +1,15 @@
 import Link from "next/link";
-import { Brain, ArrowRight, Layout, Target, HelpCircle, User, ChevronRight } from "lucide-react";
+import { Brain, ArrowRight, Layout, Target } from "lucide-react";
 
-export default function QuizCard({ quiz }: { quiz: any }) {
+type Quiz = {
+  _id: string;
+  title: string;
+  description: string;
+  questions: unknown[];
+  totalPoints: number;
+};
+
+export default function QuizCard({ quiz }: { quiz: Quiz }) {
   return (
     <div className="bg-card rounded-[2rem] p-6 border border-border shadow-sm hover:shadow-xl hover:shadow-slate-100/50 dark:hover:shadow-none transition-all group relative">
       <div className="flex items-center justify-between mb-6">
