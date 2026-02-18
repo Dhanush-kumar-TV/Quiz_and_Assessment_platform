@@ -3,7 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import DashboardStats from "@/components/DashboardStats";
-import RecentActivity, { ActivityItem } from "@/components/RecentActivity";
+import RecentActivity, { DashboardActivityItem } from "@/components/RecentActivity";
 import { Loader2 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -13,9 +13,9 @@ export default function DashboardPage() {
     collaborations: number;
     attempts: number;
     avgScore: string | number;
-    recentQuizzes: ActivityItem[];
-    recentCollaborations: ActivityItem[];
-    recentAttempts: ActivityItem[];
+    recentQuizzes: DashboardActivityItem[];
+    recentCollaborations: DashboardActivityItem[];
+    recentAttempts: DashboardActivityItem[];
   } | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -43,9 +43,9 @@ export default function DashboardPage() {
           collaborations: collaborations.length,
           attempts: totalAttempts,
           avgScore: averageScore,
-          recentQuizzes: createdQuizzes.slice(0, 5) as ActivityItem[],
-          recentCollaborations: collaborations.slice(0, 5) as ActivityItem[],
-          recentAttempts: attempts.slice(0, 5) as ActivityItem[],
+          recentQuizzes: createdQuizzes.slice(0, 5) as DashboardActivityItem[],
+          recentCollaborations: collaborations.slice(0, 5) as DashboardActivityItem[],
+          recentAttempts: attempts.slice(0, 5) as DashboardActivityItem[],
         });
       } catch (error) {
         console.error("Failed to fetch dashboard data", error);

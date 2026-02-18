@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ChevronRight, Calendar, Brain, CheckCircle } from "lucide-react";
 
-export type ActivityItem = {
+export type DashboardActivityItem = {
   _id: string;
   title?: string;
   createdAt?: string;
@@ -9,7 +9,7 @@ export type ActivityItem = {
   quizId?: { title: string };
 };
 
-export default function RecentActivity({ title, items, type }: { title: string, items: ActivityItem[], type: 'quiz' | 'attempt' }) {
+export default function RecentActivity({ title, items, type }: { title: string, items: DashboardActivityItem[], type: 'quiz' | 'attempt' }) {
   return (
     <div className="bg-card border border-border rounded-3xl shadow-sm overflow-hidden">
       <div className="p-6 border-b border-border flex items-center justify-between">
