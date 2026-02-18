@@ -1,8 +1,8 @@
 "use client";
 
 import { useRef, useMemo, useState, useEffect } from "react";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { OrbitControls, Sphere, MeshDistortMaterial, Stars } from "@react-three/drei";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { Stars } from "@react-three/drei";
 import { useTheme } from "next-themes";
 import * as THREE from "three";
 
@@ -53,7 +53,7 @@ function Neurons({ count = 400, theme = "dark" }) {
     return temp;
   }, [count]);
 
-  useFrame((state: any) => {
+  useFrame((state) => {
     if (!neuronsRef.current) return;
     
     const time = state.clock.getElapsedTime();
@@ -147,24 +147,7 @@ function Neurons({ count = 400, theme = "dark" }) {
   );
 }
 
-// Background glow effect
-function BackgroundGlow({ theme = "dark" }) {
-  const isLight = theme === "light";
-  return (
-    <mesh position={[0, 0, -2]} scale={[15, 15, 1]}>
-      <planeGeometry />
-      <meshBasicMaterial
-        color={isLight ? "#f8fafc" : "#004d40"}
-        transparent
-        opacity={isLight ? 0.8 : 0.3}
-        blending={isLight ? THREE.NormalBlending : THREE.AdditiveBlending}
-        side={THREE.DoubleSide}
-      />
-    </mesh>
-  );
-}
-
-// Interactive particles (sparkles) - Now static
+// Rotating wrapper for the main content
 function Particles({ count = 100, theme = "dark" }) {
   const mesh = useRef<THREE.InstancedMesh>(null);
   const [dummy] = useState(() => new THREE.Object3D());
@@ -185,13 +168,11 @@ function Particles({ count = 100, theme = "dark" }) {
     return temp;
   }, [count]);
 
-  useFrame((state: any) => {
+  useFrame(() => {
     if (!mesh.current) return;
     particles.forEach((particle, i) => {
-      let { t, factor, speed, xFactor, yFactor, zFactor } = particle;
-      t = particle.t += speed / 2;
-      const a = Math.cos(t) + Math.sin(t * 1) / 10;
-      const b = Math.sin(t) + Math.cos(t * 2) / 10;
+      const { factor, speed, xFactor, yFactor, zFactor } = particle;
+      const t = particle.t += speed / 2;
       const s = Math.cos(t);
       
       dummy.position.set(

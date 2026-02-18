@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { 
     Users, 
@@ -9,17 +9,20 @@ import {
     TrendingUp, 
     Search, 
     ArrowLeft,
-    ChevronRight,
     Loader2,
     Calendar,
     Target
 } from "lucide-react";
-import Link from "next/link";
 
 export default function QuizReportsPage() {
     const params = useParams();
     const router = useRouter();
-    const [data, setData] = useState<any>(null);
+interface QuizQuestion { questionText: string; options: { text: string; isCorrect: boolean }[]; points?: number; category?: string; }
+interface ReportAttempt { _id: string; userId?: { name?: string; email?: string }; status?: string; percentage?: number; score?: number; totalPoints?: number; createdAt: string; }
+interface CategoryStat { score: number; count: number; }
+interface ReportData { quiz: { title: string; questions: QuizQuestion[] }; attempts: ReportAttempt[]; stats: { totalAttempts: number; completedAttempts: number; activeAttempts: number; averagePercentage: number; categoryPerformance: Record<string, CategoryStat> }; }
+
+    const [data, setData] = useState<ReportData | null>(null);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
 
@@ -54,7 +57,7 @@ export default function QuizReportsPage() {
     if (!data) return <div className="p-20 text-center font-black">Report not available.</div>;
 
     const { quiz, attempts, stats } = data;
-    const filteredAttempts = attempts.filter((a: any) => 
+    const filteredAttempts = attempts.filter((a: ReportAttempt) => 
         a.userId?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         a.userId?.email?.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -127,12 +130,13 @@ export default function QuizReportsPage() {
                     </h2>
                     <div className="space-y-6">
                         {Object.entries(stats.categoryPerformance).length > 0 ? (
-                            Object.entries(stats.categoryPerformance).map(([cat, s]: [string, any]) => {
+                            Object.entries(stats.categoryPerformance).map(([cat, s]) => {
+                                const catStat = s as CategoryStat;
                                 // Calculate possible points for this category
                                 const catMaxPoints = quiz.questions
-                                    .filter((q: any) => (q.category || "General") === cat)
-                                    .reduce((acc: number, q: any) => acc + (q.points || 1), 0);
-                                const avgScoreForCat = s.score / s.count;
+                                    .filter((q) => (q.category || "General") === cat)
+                                    .reduce((acc: number, q) => acc + (q.points || 1), 0);
+                                const avgScoreForCat = catStat.score / catStat.count;
                                 const percentage = (avgScoreForCat / catMaxPoints) * 100;
 
                                 return (
@@ -177,7 +181,7 @@ export default function QuizReportsPage() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-border/30">
-                                {filteredAttempts.map((attempt: any) => (
+                                {filteredAttempts.map((attempt: ReportAttempt) => (
                                     <tr key={attempt._id} className="group hover:bg-secondary/20 transition-colors">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
@@ -234,8 +238,8 @@ export default function QuizReportsPage() {
     );
 }
 
-function StatCard({ label, value, sub, icon, color }: any) {
-    const colorClasses: any = {
+function StatCard({ label, value, sub, icon, color }: { label: string; value: string | number; sub: string; icon: React.ReactNode; color: string }) {
+    const colorClasses: Record<string, string> = {
         primary: "bg-primary/5 text-primary",
         emerald: "bg-emerald-50 text-emerald-600",
         amber: "bg-amber-50 text-amber-600",

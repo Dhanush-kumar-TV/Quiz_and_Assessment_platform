@@ -6,14 +6,16 @@ import {
   Check, 
   Plus, 
   List, 
-  Type, 
   Hash, 
   Clock, 
-  Tag, 
-  CheckCircle2 
+  Tag 
 } from "lucide-react";
+import Image from "next/image";
 
-export default function QuestionForm({ question, onChange }: { question: any, onChange: (updated: any) => void }) {
+interface QuestionOption { text: string; image?: string; isCorrect: boolean; }
+interface Question { questionText: string; type?: string; points?: number; timeLimit?: number; category?: string; required?: boolean; options: QuestionOption[]; image?: string; }
+
+export default function QuestionForm({ question, onChange }: { question: Question, onChange: (updated: Question) => void }) {
   const fileInputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const baseId = useId();
 
@@ -72,7 +74,7 @@ export default function QuestionForm({ question, onChange }: { question: any, on
   };
 
   const toggleCorrect = (optionIndex: number) => {
-    const newOptions = question.options.map((opt: any, i: number) => ({
+    const newOptions = question.options.map((opt: QuestionOption, i: number) => ({
       ...opt,
       isCorrect: i === optionIndex
     }));
@@ -87,8 +89,8 @@ export default function QuestionForm({ question, onChange }: { question: any, on
 
   const removeOption = (index: number) => {
     if (question.options.length > 2) {
-      const newOptions = question.options.filter((_: any, i: number) => i !== index);
-      if (!newOptions.some((opt: any) => opt.isCorrect)) {
+      const newOptions = question.options.filter((_: QuestionOption, i: number) => i !== index);
+      if (!newOptions.some((opt: QuestionOption) => opt.isCorrect)) {
         newOptions[0].isCorrect = true;
       }
       onChange({ ...question, options: newOptions });
@@ -181,7 +183,7 @@ export default function QuestionForm({ question, onChange }: { question: any, on
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {question.options.map((option: any, i: number) => (
+          {question.options.map((option: QuestionOption, i: number) => (
             <div key={i} className="group relative">
               <div className={`p-4 rounded-3xl border-2 transition-all ${
                 option.isCorrect 
@@ -212,7 +214,7 @@ export default function QuestionForm({ question, onChange }: { question: any, on
                       <div className="relative">
                         {option.image ? (
                           <div className="relative group/img w-full aspect-video rounded-2xl overflow-hidden border border-border bg-secondary/30">
-                            <img src={option.image} className="w-full h-full object-cover" />
+                            <Image src={option.image} alt="Option choice" fill className="object-cover" />
                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center gap-2">
                                 <button
                                     type="button"

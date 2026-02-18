@@ -7,21 +7,54 @@ import QuestionDisplay from "@/components/quiz/QuestionDisplay";
 import ScoreDisplay from "@/components/attempt/ScoreDisplay";
 import { Loader2, Timer, ChevronRight, ChevronLeft, Send, AlertTriangle } from "lucide-react";
 
+interface Option {
+    text: string;
+    image?: string;
+    isCorrect: boolean;
+}
+
+interface Question {
+    questionText: string;
+    timeLimit?: number;
+    required?: boolean;
+    originalIndex: number;
+    options: Option[];
+}
+
+interface Quiz {
+    showScore?: boolean;
+    questions: Question[];
+    title: string;
+    timeLimit?: number;
+    maxAttempts?: number;
+    shuffleQuestions?: boolean;
+    shuffleOptions?: boolean;
+}
+
+interface AttemptResult {
+    percentage: number;
+    score: number;
+    totalPoints: number;
+    timeTaken: number;
+    categoryScores?: Record<string, number>;
+    answers: { questionIndex: number; selectedOptionIndex: number }[];
+    quizId?: { _id: string; title: string; questions: { questionText: string }[] };
+}
+
 export default function QuizAttemptPage({ params }: { params: { id: string } }) {
-  const { data: session, status: authStatus } = useSession();
-  const [quiz, setQuiz] = useState<any>(null);
+  const { status: authStatus } = useSession();
+  const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [answers, setAnswers] = useState<any[]>([]);
+  const [answers, setAnswers] = useState<({ selectedOptionIndex: number } | null)[]>([]);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [questionTimeLeft, setQuestionTimeLeft] = useState<number | null>(null);
   const [startTime, setStartTime] = useState(Date.now());
-  const [attemptResult, setAttemptResult] = useState<any>(null);
-  const [originalQuiz, setOriginalQuiz] = useState<any>(null);
+  const [attemptResult, setAttemptResult] = useState<AttemptResult | null>(null);
   const router = useRouter();
 
-  const shuffleArray = (array: any[]) => {
+  const shuffleArray = <T,>(array: T[]): T[] => {
     const arr = [...array];
     for (let i = arr.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -33,7 +66,8 @@ export default function QuizAttemptPage({ params }: { params: { id: string } }) 
   const submitQuiz = async (isAuto = false) => {
     if (!isAuto) {
       // Check required questions before submitting
-      const missingRequired = quiz.questions.some((q: any, i: number) => q.required && answers[i] === null);
+      if (!quiz) return;
+      const missingRequired = quiz.questions.some((q, i) => q.required && answers[i] === null);
       if (missingRequired) {
         alert("Please answer all required questions before submitting.");
         return;
@@ -59,7 +93,7 @@ export default function QuizAttemptPage({ params }: { params: { id: string } }) 
           quizId: params.id,
           answers: answers.filter(a => a !== null).map((a, i) => ({
             ...a,
-            questionIndex: quiz.questions[i].originalIndex // Crucial for shuffled scoring
+            questionIndex: quiz?.questions[i]?.originalIndex // Crucial for shuffled scoring
           })),
           timeTaken,
         }),
@@ -78,10 +112,7 @@ export default function QuizAttemptPage({ params }: { params: { id: string } }) 
     }
   };
 
-  const handleAutoSubmit = () => {
-    alert("Time is up! Submitting your quiz automatically.");
-    submitQuiz(true);
-  };
+
 
   useEffect(() => {
     async function fetchQuiz() {
@@ -104,17 +135,15 @@ export default function QuizAttemptPage({ params }: { params: { id: string } }) 
         const userAttempts = await userAttemptsRes.json();
         
         // Check attempt limits
-        const completedAttempts = userAttempts.filter((a: any) => a.quizId?._id === params.id || a.quizId === params.id).length;
-        if (rawQuiz.maxAttempts > 0 && completedAttempts >= rawQuiz.maxAttempts) {
-            alert(`You have reached the maximum of ${rawQuiz.maxAttempts} attempts for this quiz.`);
-            router.push(`/quizzes/${params.id}`);
-            return;
-        }
-
-        setOriginalQuiz(rawQuiz);
+        const completedAttempts = userAttempts.filter((a: { quizId: { _id: string } | string }) => (typeof a.quizId === 'object' ? a.quizId._id : a.quizId) === params.id).length;
+            if (rawQuiz.maxAttempts > 0 && completedAttempts >= rawQuiz.maxAttempts) {
+                alert(`You have reached the maximum of ${rawQuiz.maxAttempts} attempts for this quiz.`);
+                router.push(`/quizzes/${params.id}`);
+                return;
+            }
         
         // Prepare questions with original indices for scoring
-        let processedQuestions = rawQuiz.questions.map((q: any, i: number) => ({ ...q, originalIndex: i }));
+        let processedQuestions = rawQuiz.questions.map((q: { questionText: string; timeLimit?: number; options: { text: string; image?: string; isCorrect: boolean }[] }, i: number) => ({ ...q, originalIndex: i }));
         
         // Global Shuffle
         if (rawQuiz.shuffleQuestions) {
@@ -123,7 +152,7 @@ export default function QuizAttemptPage({ params }: { params: { id: string } }) 
 
         // Option Shuffling
         if (rawQuiz.shuffleOptions) {
-            processedQuestions = processedQuestions.map((q: any) => ({
+            processedQuestions = processedQuestions.map((q: { options: { text: string; image?: string; isCorrect: boolean }[] }) => ({
                 ...q,
                 options: shuffleArray(q.options)
             }));
@@ -154,30 +183,8 @@ export default function QuizAttemptPage({ params }: { params: { id: string } }) 
       }
     }
     fetchQuiz();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id, authStatus]);
-
-  // Global Quiz Timer
-  useEffect(() => {
-    if (timeLeft === null || attemptResult) return;
-    if (timeLeft <= 0) { handleAutoSubmit(); return; }
-    const timer = setInterval(() => setTimeLeft(prev => (prev !== null ? prev - 1 : null)), 1000);
-    return () => clearInterval(timer);
-  }, [timeLeft, attemptResult]);
-
-  // Per-Question Timer
-  useEffect(() => {
-    if (questionTimeLeft === null || attemptResult) return;
-    if (questionTimeLeft <= 0) { 
-        if (currentQuestionIndex < quiz.questions.length - 1) {
-            nextQuestion();
-        } else {
-            submitQuiz(true);
-        }
-        return; 
-    }
-    const timer = setInterval(() => setQuestionTimeLeft(prev => (prev !== null ? prev - 1 : null)), 1000);
-    return () => clearInterval(timer);
-  }, [questionTimeLeft, attemptResult]);
 
   const handleSelectOption = (optionIndex: number) => {
     const newAnswers = [...answers];
@@ -188,13 +195,14 @@ export default function QuizAttemptPage({ params }: { params: { id: string } }) 
   };
 
   const nextQuestion = () => {
+    if (!quiz) return;
     // Check if required
     if (quiz.questions[currentQuestionIndex].required && answers[currentQuestionIndex] === null) {
         alert("This question is required. Please select an answer to continue.");
         return;
     }
 
-    if (currentQuestionIndex < quiz.questions.length - 1) {
+    if (quiz && currentQuestionIndex < quiz.questions.length - 1) {
       const nextIdx = currentQuestionIndex + 1;
       setCurrentQuestionIndex(nextIdx);
       // Reset question timer for the next one
@@ -202,6 +210,35 @@ export default function QuizAttemptPage({ params }: { params: { id: string } }) 
       setQuestionTimeLeft(nextLimit > 0 ? nextLimit : null);
     }
   };
+
+  // Global Quiz Timer
+  useEffect(() => {
+    if (timeLeft === null || attemptResult) return;
+    if (timeLeft <= 0) { 
+      alert("Time is up! Submitting your quiz automatically.");
+      submitQuiz(true); 
+      return; 
+    }
+    const timer = setInterval(() => setTimeLeft(prev => (prev !== null ? prev - 1 : null)), 1000);
+    return () => clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timeLeft, !!attemptResult]);
+
+  // Per-Question Timer
+  useEffect(() => {
+    if (questionTimeLeft === null || attemptResult) return;
+    if (questionTimeLeft <= 0) { 
+        if (quiz && currentQuestionIndex < quiz.questions.length - 1) {
+            nextQuestion();
+        } else {
+            submitQuiz(true);
+        }
+        return; 
+    }
+    const timer = setInterval(() => setQuestionTimeLeft(prev => (prev !== null ? prev - 1 : null)), 1000);
+    return () => clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [questionTimeLeft, !!attemptResult, currentQuestionIndex]);
 
   const saveProgress = async () => {
     setSubmitting(true);
@@ -217,7 +254,7 @@ export default function QuizAttemptPage({ params }: { params: { id: string } }) 
                 quizId: params.id,
                 answers: answers.filter(a => a !== null).map((a, i) => ({
                     ...a,
-                    questionIndex: quiz.questions[i].originalIndex
+                    questionIndex: quiz?.questions[i]?.originalIndex
                 })),
                 timeTaken,
                 currentQuestionIndex
@@ -284,11 +321,13 @@ export default function QuizAttemptPage({ params }: { params: { id: string } }) 
   }
 
   if (attemptResult) {
-    const reviewQuiz = (attemptResult.quizId && typeof attemptResult.quizId === 'object') ? attemptResult.quizId : quiz;
-    return <ScoreDisplay result={attemptResult} quiz={reviewQuiz} rawAnswers={answers} />;
+    const reviewQuiz = (attemptResult.quizId && typeof attemptResult.quizId === 'object') ? attemptResult.quizId as unknown as Quiz : quiz as Quiz;
+    return <ScoreDisplay result={attemptResult} quiz={reviewQuiz} />;
   }
 
-  const currentQuestion = quiz.questions[currentQuestionIndex];
+  if (!quiz) return null;
+
+  // const currentQuestion = quiz.questions[currentQuestionIndex];
   const progress = ((currentQuestionIndex + 1) / quiz.questions.length) * 100;
 
   return (
@@ -304,9 +343,9 @@ export default function QuizAttemptPage({ params }: { params: { id: string } }) 
             <span>Quit</span>
           </button>
           <div>
-             <h1 className="text-2xl font-black text-slate-900 line-clamp-1">{quiz.title}</h1>
+             <h1 className="text-2xl font-black text-slate-900 line-clamp-1">{quiz?.title}</h1>
              <div className="flex items-center gap-4 text-sm font-bold text-slate-400 mt-1">
-                  <span>Question {currentQuestionIndex + 1} of {quiz.questions.length}</span>
+                  <span>Question {currentQuestionIndex + 1} of {quiz?.questions.length}</span>
                    <span className={`flex items-center gap-1 ${timeLeft !== null && timeLeft < 60 ? "text-red-500 animate-pulse" : ""}`}>
                     <Timer className="w-4 h-4" /> 
                     {timeLeft !== null ? formatTime(timeLeft) : "No Time Limit"}
@@ -317,7 +356,7 @@ export default function QuizAttemptPage({ params }: { params: { id: string } }) 
         <div className="flex items-center gap-3">
              <button 
                 onClick={saveProgress}
-                disabled={submitting}
+                disabled={submitting || !quiz}
                 className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-card border border-border text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all shadow-sm font-bold group"
               >
                 <span className="material-icons text-xl group-hover:rotate-12 transition-transform">save</span>
@@ -354,7 +393,7 @@ export default function QuizAttemptPage({ params }: { params: { id: string } }) 
            </button>
 
            <div className="flex items-center gap-4">
-                {currentQuestionIndex < quiz.questions.length - 1 ? (
+                {quiz && currentQuestionIndex < quiz.questions.length - 1 ? (
                     <button 
                         onClick={nextQuestion}
                         className="bg-primary text-primary-foreground px-10 py-4 rounded-2xl font-black flex items-center gap-2 hover:opacity-90 transition-all shadow-xl shadow-slate-100/50 dark:shadow-none"

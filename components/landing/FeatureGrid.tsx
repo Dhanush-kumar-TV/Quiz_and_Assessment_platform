@@ -1,5 +1,7 @@
 "use client";
 
+import React from "react";
+
 import { motion } from "framer-motion";
 import { 
   CheckSquare, 
@@ -100,7 +102,7 @@ export const integrationFeatures = [
   { icon: <Code className="w-6 h-6" />, title: "Embed", desc: "Embed a quiz or respondent portal using simple HTML code." },
 ];
 
-export const GridSection = ({ title, items, colorClass }: { title: string, items: any[], colorClass: string }) => (
+export const GridSection = ({ title, items, colorClass }: { title: string, items: { icon: React.ReactNode; title: string; desc: string }[], colorClass: string }) => (
   <div className="py-20">
     <h3 className="text-2xl font-bold mb-12 text-center text-foreground uppercase tracking-widest opacity-50">{title}</h3>
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">

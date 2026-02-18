@@ -7,7 +7,7 @@ import User from "@/lib/models/User";
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
-    if (!session || (session.user as any).role !== 'admin') {
+    if (!session || (session.user as { role?: string }).role !== 'admin') {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
@@ -15,15 +15,15 @@ export async function GET() {
     const users = await User.find({}).sort({ createdAt: -1 });
 
     return NextResponse.json(users);
-  } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json({ message: error instanceof Error ? error.message : "Internal Server Error" }, { status: 500 });
   }
 }
 
 export async function PATCH(req: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session || (session.user as any).role !== 'admin') {
+    if (!session || (session.user as { role?: string }).role !== 'admin') {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
@@ -35,14 +35,14 @@ export async function PATCH(req: Request) {
 
     await connectToDatabase();
     
-    const update: any = {};
+    const update: { role?: string; status?: string } = {};
     if (role) update.role = role;
     if (status) update.status = status;
 
     const user = await User.findByIdAndUpdate(userId, update, { new: true });
 
     return NextResponse.json(user);
-  } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json({ message: error instanceof Error ? error.message : "Internal Server Error" }, { status: 500 });
   }
 }

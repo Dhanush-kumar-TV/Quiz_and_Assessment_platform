@@ -14,7 +14,7 @@ export async function GET(req: Request) {
     const userId = searchParams.get("userId");
     const publicOnly = searchParams.get("publicOnly") === "true";
     
-    let query: any = {};
+    let query: Record<string, unknown> = {};
     
     if (publicOnly || !userId) {
       // Public view: only show published quizzes
@@ -33,8 +33,8 @@ export async function GET(req: Request) {
 
     const quizzes = await Quiz.find(query).sort({ createdAt: -1 });
     return NextResponse.json(quizzes);
-  } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json({ message: error instanceof Error ? error.message : "Internal Server Error" }, { status: 500 });
   }
 }
 
@@ -68,7 +68,7 @@ export async function POST(req: Request) {
 
     await connectToDatabase();
 
-    const totalPoints = questions.reduce((acc: number, q: any) => acc + (q.points || 1), 0);
+    const totalPoints = questions.reduce((acc: number, q: { points?: number }) => acc + (q.points || 1), 0);
 
     const publicUrl = `/q/${nanoid(10)}`;
 
@@ -90,7 +90,7 @@ export async function POST(req: Request) {
           ? await bcrypt.hash(password.trim(), 10)
           : "",
       registrationFields: registrationFields || [],
-      createdBy: (session.user as any).id,
+      createdBy: (session.user as { id: string }).id,
       publicUrl,
       embedCode: `<iframe src="${process.env.NEXTAUTH_URL}${publicUrl}" width="100%" height="600px" frameborder="0"></iframe>`
     });
@@ -98,15 +98,15 @@ export async function POST(req: Request) {
     // 2. Automatically assign Creator role
     await QuizRole.create({
       quizId: quiz._id,
-      userId: (session.user as any).id,
+      userId: (session.user as { id: string }).id,
       role: 'creator',
-      assignedBy: (session.user as any).id,
+      assignedBy: (session.user as { id: string }).id,
     });
 
     console.log("DEBUG: POST /api/quizzes - Created Quiz & Role");
 
     return NextResponse.json(quiz, { status: 201 });
-  } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json({ message: error instanceof Error ? error.message : "Internal Server Error" }, { status: 500 });
   }
 }

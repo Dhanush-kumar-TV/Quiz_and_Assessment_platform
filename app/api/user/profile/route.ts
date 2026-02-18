@@ -15,7 +15,7 @@ export async function PUT(req: Request) {
     await connectToDatabase();
 
     const updatedUser = await User.findByIdAndUpdate(
-      (session.user as any).id,
+      (session.user as { id: string }).id,
       { name, image, theme },
       { new: true }
     );
@@ -29,7 +29,7 @@ export async function PUT(req: Request) {
       image: updatedUser.image,
       theme: updatedUser.theme,
     });
-  } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json({ message: error instanceof Error ? error.message : "Internal Server Error" }, { status: 500 });
   }
 }

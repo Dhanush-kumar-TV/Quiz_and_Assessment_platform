@@ -1,7 +1,15 @@
 import Link from "next/link";
 import { History, Calendar, Target, Clock, ChevronRight } from "lucide-react";
 
-export default function AttemptCard({ attempt }: { attempt: any }) {
+interface Attempt {
+  _id: string;
+  quizId?: { title?: string };
+  percentage: number;
+  timeTaken: number;
+  completedAt: string;
+}
+
+export default function AttemptCard({ attempt }: { attempt: Attempt }) {
   const isPassed = attempt.percentage >= 50;
 
   return (

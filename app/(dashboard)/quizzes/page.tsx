@@ -4,8 +4,17 @@ import { useEffect, useState } from "react";
 import QuizList from "@/components/quiz/QuizList";
 import { Search, Loader2 } from "lucide-react";
 
+interface Quiz {
+    _id: string;
+    title: string;
+    description: string;
+    questions: { questionText: string }[];
+    isPublic: boolean;
+    createdBy: string;
+}
+
 export default function QuizzesPage() {
-  const [quizzes, setQuizzes] = useState([]);
+  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -15,7 +24,7 @@ export default function QuizzesPage() {
         // Explicitly request only published quizzes for public viewing
         const res = await fetch("/api/quizzes?publicOnly=true");
         const data = await res.json();
-        setQuizzes(data);
+        setQuizzes(data as Quiz[]);
       } catch (err) {
         console.error("Failed to fetch quizzes", err);
       } finally {
@@ -25,7 +34,7 @@ export default function QuizzesPage() {
     fetchQuizzes();
   }, []);
 
-  const filteredQuizzes = quizzes.filter((q: any) => 
+  const filteredQuizzes = quizzes.filter((q: Quiz) => 
     q.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     q.description.toLowerCase().includes(searchTerm.toLowerCase())
   );

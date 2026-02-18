@@ -23,18 +23,26 @@ export async function GET(
     }
 
     // Return only necessary non-sensitive info for the landing gate
-    const safeQuiz = {
+    const safeQuiz: {
+      _id: unknown;
+      title: string;
+      description?: string;
+      accessType: string;
+      registrationFields?: string[];
+      timeLimit?: number;
+      questionsCount: number;
+    } = {
       _id: quiz._id,
       title: quiz.title,
       description: quiz.description,
       accessType: quiz.accessType,
       registrationFields: quiz.registrationFields,
       timeLimit: quiz.timeLimit,
-      questionsCount: quiz.questions?.length || 0,
+      questionsCount: (quiz.questions as unknown[])?.length || 0,
     };
 
     return NextResponse.json(safeQuiz);
-  } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json({ message: error instanceof Error ? error.message : "Internal Server Error" }, { status: 500 });
   }
 }

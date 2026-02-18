@@ -10,21 +10,15 @@ import {
   BarChart3, 
   Shield, 
   Link as LinkIcon, 
-  AlertTriangle, 
-  Users,
-  Settings,
-  Layout,
-  RefreshCw,
-  Eye,
-  Mail,
-  CheckCircle2,
-  Info
+  Users
 } from "lucide-react";
 
-export default function QuizForm({ initialData }: { initialData?: any }) {
+type QuizQuestion = { type?: string; questionText: string; options: { text: string; isCorrect: boolean; image?: string }[]; points?: number; required?: boolean; timeLimit?: number; category?: string; image?: string };
+
+export default function QuizForm({ initialData }: { initialData?: { _id?: string; title?: string; description?: string; questions?: QuizQuestion[]; timeLimit?: number; isPublished?: boolean; showScore?: boolean; shuffleQuestions?: boolean; shuffleOptions?: boolean; maxAttempts?: number; emailResults?: boolean; accessType?: string; registrationFields?: string[]; publicUrl?: string; embedCode?: string } }) {
   const [title, setTitle] = useState(initialData?.title || "");
   const [description, setDescription] = useState(initialData?.description || "");
-  const [questions, setQuestions] = useState<any[]>(initialData?.questions || [
+  const [questions, setQuestions] = useState<QuizQuestion[]>(initialData?.questions || [
     { type: "multiple-choice", questionText: "", options: [{ text: "", isCorrect: true }, { text: "", isCorrect: false }], points: 1, required: false, timeLimit: 0, category: "General" }
   ]);
   const [timeLimit, setTimeLimit] = useState(initialData?.timeLimit || 0);
@@ -35,7 +29,7 @@ export default function QuizForm({ initialData }: { initialData?: any }) {
   const [maxAttempts, setMaxAttempts] = useState(initialData?.maxAttempts || 0);
   const [emailResults, setEmailResults] = useState(initialData?.emailResults || false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [_error, setError] = useState("");
   const [accessType, setAccessType] = useState(initialData?.accessType || "public");
   const [password, setPassword] = useState(""); // We don't show the hashed password
   const [registrationFields, setRegistrationFields] = useState<string[]>(initialData?.registrationFields || ["name", "email"]);
@@ -50,7 +44,7 @@ export default function QuizForm({ initialData }: { initialData?: any }) {
     setQuestions(questions.filter((_, i) => i !== index));
   };
 
-  const updateQuestion = (index: number, updatedQuestion: any) => {
+  const updateQuestion = (index: number, updatedQuestion: QuizQuestion) => {
     const newQuestions = [...questions];
     newQuestions[index] = updatedQuestion;
     setQuestions(newQuestions);
@@ -104,8 +98,8 @@ export default function QuizForm({ initialData }: { initialData?: any }) {
 
       router.push("/dashboard");
       router.refresh();
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
     }
@@ -544,8 +538,8 @@ export default function QuizForm({ initialData }: { initialData?: any }) {
 }
 
 function RolesManagement({ quizId }: { quizId: string }) {
-  const [collaborators, setCollaborators] = useState<any[]>([]);
-  const [accessRequests, setAccessRequests] = useState<any[]>([]);
+  const [collaborators, setCollaborators] = useState<{ _id: string; userId: { _id: string; name: string; email: string }; role: string }[]>([]);
+  const [accessRequests, setAccessRequests] = useState<{ _id: string; name?: string; userId: { _id: string; name: string; email: string }; status: string }[]>([]);
   const [newEmail, setNewEmail] = useState("");
   const [newRole, setNewRole] = useState("teacher");
   const [loading, setLoading] = useState(false);
@@ -554,7 +548,8 @@ function RolesManagement({ quizId }: { quizId: string }) {
   useEffect(() => {
     fetchRoles();
     fetchAccessRequests();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [quizId]);
 
   async function fetchRoles() {
     try {
@@ -717,7 +712,7 @@ function RolesManagement({ quizId }: { quizId: string }) {
               </p>
             ) : (
               <div className="space-y-3">
-                {accessRequests.map((r: any) => (
+                {accessRequests.map((r) => (
                   <div
                     key={r._id}
                     className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800"

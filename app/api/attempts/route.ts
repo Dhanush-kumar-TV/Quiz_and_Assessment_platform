@@ -7,7 +7,7 @@ import Quiz from "@/lib/models/Quiz";
 import { checkQuizPermission, Permission } from "@/lib/permissions";
 import bcrypt from "bcryptjs";
 
-async function isPasscodeValid(stored: any, provided: string) {
+async function isPasscodeValid(stored: unknown, provided: string) {
   const pass = (provided || "").trim();
   if (!pass) return false;
   const storedPass = typeof stored === "string" ? stored : "";
@@ -18,7 +18,7 @@ async function isPasscodeValid(stored: any, provided: string) {
   return storedPass === pass;
 }
 
-export async function GET(req: Request) {
+export async function GET() {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
@@ -26,13 +26,13 @@ export async function GET(req: Request) {
     }
 
     await connectToDatabase();
-    const attempts = await Attempt.find({ userId: (session.user as any).id })
+    const attempts = await Attempt.find({ userId: (session.user as { id: string }).id })
       .populate("quizId", "title")
       .sort({ createdAt: -1 });
 
     return NextResponse.json(attempts);
-  } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json({ message: error instanceof Error ? error.message : "Internal Server Error" }, { status: 500 });
   }
 }
 
@@ -55,7 +55,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Quiz not found" }, { status: 404 });
     }
 
-    const userId = (session.user as any).id;
+    const userId = (session.user as { id: string }).id;
 
     // Enforce access rules (prevents direct POST bypass)
     const isCreator = quiz.createdBy.toString() === userId;
@@ -83,11 +83,11 @@ export async function POST(req: Request) {
     const totalPoints = quiz.totalPoints;
     const categoryScores: Record<string, number> = {};
 
-    quiz.questions.forEach((question: any, index: number) => {
+    quiz.questions.forEach((question: { category?: string; options: { isCorrect: boolean }[]; points?: number }, index: number) => {
       const category = question.category || "General";
       if (!categoryScores[category]) categoryScores[category] = 0;
 
-      const userAnswer = answers.find((a: any) => a.questionIndex === index);
+      const userAnswer = answers.find((a: { questionIndex: number; selectedOptionIndex: number }) => a.questionIndex === index);
       if (userAnswer) {
         const selectedOption = question.options[userAnswer.selectedOptionIndex];
         if (selectedOption && selectedOption.isCorrect) {
@@ -117,7 +117,7 @@ export async function POST(req: Request) {
     const populatedAttempt = await Attempt.findById(attempt._id).populate("quizId");
 
     return NextResponse.json(populatedAttempt, { status: 201 });
-  } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json({ message: error instanceof Error ? error.message : "Internal Server Error" }, { status: 500 });
   }
 }

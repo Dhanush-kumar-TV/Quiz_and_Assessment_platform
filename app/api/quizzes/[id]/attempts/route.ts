@@ -23,7 +23,7 @@ export async function GET(
       return NextResponse.json({ message: "Quiz not found" }, { status: 404 });
     }
 
-    if (quiz.createdBy.toString() !== (session.user as any).id) {
+    if (quiz.createdBy.toString() !== (session.user as { id: string }).id) {
       return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
@@ -32,7 +32,7 @@ export async function GET(
       .sort({ createdAt: -1 });
 
     return NextResponse.json(attempts);
-  } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json({ message: error instanceof Error ? error.message : "Internal Server Error" }, { status: 500 });
   }
 }

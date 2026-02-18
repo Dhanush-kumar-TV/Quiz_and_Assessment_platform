@@ -2,8 +2,8 @@
 
 import { useState, useRef } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import { User, Image as ImageIcon, Palette, Save, CheckCircle2, Loader2, ArrowLeft } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useTheme } from "next-themes";
 
@@ -11,10 +11,9 @@ export default function SettingsPage() {
   const { data: session, update } = useSession();
   const { theme, setTheme } = useTheme();
   const [name, setName] = useState(session?.user?.name || "");
-  const [image, setImage] = useState((session?.user as any)?.image || "");
+  const [image, setImage] = useState((session?.user as { image?: string })?.image || "");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -87,7 +86,7 @@ export default function SettingsPage() {
               <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
                 <div className="w-32 h-32 rounded-[2rem] bg-primary/5 flex items-center justify-center text-primary overflow-hidden border-4 border-background shadow-lg transition-transform group-hover:scale-105 duration-300">
                   {image ? (
-                    <img src={image} alt="Profile" className="w-full h-full object-cover" />
+                    <Image src={image} alt="Profile" fill className="object-cover" />
                   ) : (
                     <User className="w-12 h-12" />
                   )}

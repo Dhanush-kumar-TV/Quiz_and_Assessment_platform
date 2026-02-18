@@ -10,7 +10,7 @@ export default function PublicQuizLanding() {
   const params = useParams();
   const router = useRouter();
   const { data: session, status: authStatus } = useSession();
-  const [quiz, setQuiz] = useState<any>(null);
+  const [quiz, setQuiz] = useState<{ _id: string; title: string; description?: string; accessType: string; registrationFields?: string[]; timeLimit?: number; questionsCount: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   
@@ -23,25 +23,25 @@ export default function PublicQuizLanding() {
 
   useEffect(() => {
     fetchQuiz();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id]);
 
   useEffect(() => {
     // Prefill name for registration/approval forms
     if (session?.user && !regData.name) {
-      const name = (session.user as any)?.name || (session.user as any)?.email || "";
+      const name = (session.user as { name?: string; email?: string }).name || (session.user as { name?: string; email?: string }).email || "";
       if (name) {
         setRegData((prev) => ({ ...prev, name }));
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session]);
+  }, [session, regData.name]);
 
   useEffect(() => {
     if (quiz?._id && session?.user && quiz.accessType === "approval") {
       fetchMyRequestStatus();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [quiz?._id, session, quiz?.accessType]);
+  }, [quiz?._id, session?.user, quiz?.accessType]);
 
   async function fetchQuiz() {
     try {
@@ -49,8 +49,8 @@ export default function PublicQuizLanding() {
       if (!res.ok) throw new Error("Quiz not found or inaccessible");
       const data = await res.json();
       setQuiz(data);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
     }
@@ -76,6 +76,8 @@ export default function PublicQuizLanding() {
     setError("");
 
     try {
+      if (!quiz) return;
+
       if (!session?.user) {
         setStatus("idle");
         signIn();
@@ -87,8 +89,8 @@ export default function PublicQuizLanding() {
         if (requestStatus !== "approved") {
           const name =
             regData.name ||
-            (session.user as any)?.name ||
-            (session.user as any)?.email ||
+            (session.user as { name?: string; email?: string }).name ||
+            (session.user as { name?: string; email?: string }).email ||
             "Participant";
 
           const res = await fetch(`/api/quizzes/${quiz._id}/access-requests`, {
@@ -121,8 +123,8 @@ export default function PublicQuizLanding() {
       setTimeout(() => {
         router.push(`/quizzes/${quiz._id}`); // Redirect to actual quiz page
       }, 800);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err));
       setStatus("idle");
     }
   };

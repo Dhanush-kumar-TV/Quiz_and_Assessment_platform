@@ -23,7 +23,7 @@ export async function PATCH(
       return NextResponse.json({ message: "Quiz not found" }, { status: 404 });
     }
 
-    const userId = (session.user as any).id;
+    const userId = (session.user as { id: string }).id;
     const isCreator = quiz.createdBy.toString() === userId;
     const canManage =
       isCreator || (await checkQuizPermission(userId, params.id, Permission.MANAGE_ROLES));
@@ -76,8 +76,8 @@ export async function PATCH(
     }
 
     return NextResponse.json(requestDoc);
-  } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json({ message: error instanceof Error ? error.message : "Internal Server Error" }, { status: 500 });
   }
 }
 

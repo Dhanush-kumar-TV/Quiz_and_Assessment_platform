@@ -6,6 +6,7 @@ import { useSession, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { Brain, LogOut, User, PlusCircle, History, LayoutDashboard, Settings, Moon, Sun, Monitor, ChevronDown, BarChart3, Shield } from "lucide-react";
 import { useTheme } from "next-themes";
+import Image from "next/image";
 
 export default function Navbar() {
   const { data: session } = useSession();
@@ -104,7 +105,7 @@ export default function Navbar() {
                       Groups
                     </Link>
 
-                    {(session.user as any).role === 'admin' && (
+                    {(session.user as { role?: string }).role === 'admin' && (
                       <Link 
                         href="/admin/users" 
                         className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-black transition-all border-2 ${
@@ -124,9 +125,9 @@ export default function Navbar() {
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                     className="flex items-center gap-3 p-1 rounded-2xl hover:bg-secondary transition-all group"
                   >
-                    <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary overflow-hidden border-2 border-background shadow-sm">
-                      {(session.user as any)?.image ? (
-                        <img src={(session.user as any).image} alt="User" className="w-full h-full object-cover" />
+                    <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary overflow-hidden border-2 border-background shadow-sm relative">
+                      {(session.user as { image?: string })?.image ? (
+                        <Image src={(session.user as { image: string }).image} alt="User" fill className="object-cover" />
                       ) : (
                         <User className="w-6 h-6" />
                       )}
@@ -165,7 +166,7 @@ export default function Navbar() {
                           <History className="w-4 h-4" />
                           My Attempts
                         </Link>
-                        {(session.user as any).role === 'admin' && (
+                        {(session.user as { role?: string }).role === 'admin' && (
                           <Link 
                             href="/admin/users" 
                             onClick={() => setIsDropdownOpen(false)}
@@ -175,7 +176,7 @@ export default function Navbar() {
                             User Management
                           </Link>
                         )}
-                        {((session.user as any).role === 'admin' || (session.user as any).role === 'trainer') && (
+                        {((session.user as { role?: string }).role === 'admin' || (session.user as { role?: string }).role === 'trainer') && (
                           <Link 
                             href="/groups" 
                             onClick={() => setIsDropdownOpen(false)}

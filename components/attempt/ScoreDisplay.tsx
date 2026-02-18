@@ -3,8 +3,40 @@
 import Link from "next/link";
 import { Trophy, Target, Clock, Home, ArrowRight, CheckCircle2, XCircle, ArrowLeft } from "lucide-react";
 
-export default function ScoreDisplay({ result, quiz, rawAnswers }: { result: any, quiz: any, rawAnswers: any[] }) {
-  const isPassed = result.percentage >= 50;
+interface QuizOption {
+    text: string;
+    isCorrect: boolean;
+    image?: string;
+}
+
+interface QuizQuestion {
+    questionText: string;
+    options: QuizOption[];
+    category?: string;
+    points?: number;
+}
+
+interface Quiz {
+    showScore?: boolean;
+    questions: QuizQuestion[];
+    title: string;
+}
+
+interface AnswerRecord {
+    questionIndex: number;
+    selectedOptionIndex: number;
+}
+
+interface AttemptResult {
+    percentage: number;
+    score: number;
+    totalPoints: number;
+    timeTaken: number;
+    categoryScores?: Record<string, number>;
+    answers: AnswerRecord[];
+}
+
+export default function ScoreDisplay({ result, quiz }: { result: AttemptResult, quiz: Quiz }) {
 
   if (quiz.showScore === false) {
     return (
@@ -67,11 +99,11 @@ export default function ScoreDisplay({ result, quiz, rawAnswers }: { result: any
                 <div className="mt-12 max-w-2xl mx-auto space-y-4">
                     <h3 className="text-lg font-black uppercase tracking-widest text-muted-foreground text-left pl-4">Category Analysis</h3>
                     <div className="grid gap-4">
-                        {Object.entries(result.categoryScores).map(([category, score]: [string, any]) => {
+                        {Object.entries(result.categoryScores).map(([category, score]) => {
                             // Calculate total points for this category from quiz
                             const catTotal = quiz.questions
-                                .filter((q: any) => (q.category || "General") === category)
-                                .reduce((acc: number, q: any) => acc + (q.points || 1), 0);
+                                .filter((q) => (q.category || "General") === category)
+                                .reduce((acc: number, q) => acc + (q.points || 1), 0);
                             const catPercentage = (score / catTotal) * 100;
 
                             return (
@@ -114,10 +146,10 @@ export default function ScoreDisplay({ result, quiz, rawAnswers }: { result: any
         <div className="space-y-8">
             <h2 className="text-3xl font-black text-foreground pl-4">Answer Review</h2>
             <div className="grid grid-cols-1 gap-6">
-                {quiz.questions.map((q: any, i: number) => {
-                    const userAnswer = result.answers.find((a: any) => a.questionIndex === i);
+                {quiz.questions.map((q, i) => {
+                    const userAnswer = result.answers.find((a) => a.questionIndex === i);
                     const selected = userAnswer?.selectedOptionIndex ?? null;
-                    const correctOptionIndex = q.options.findIndex((opt: any) => opt.isCorrect);
+                    const correctOptionIndex = q.options.findIndex((opt) => opt.isCorrect);
                     const isCorrect = selected === correctOptionIndex;
                     
                     return (

@@ -6,10 +6,10 @@ import Quiz from "@/lib/models/Quiz";
 import { checkQuizPermission, Permission } from "@/lib/permissions";
 import bcrypt from "bcryptjs";
 
-async function isPasscodeValid(stored: any, provided: string) {
+async function isPasscodeValid(stored: string | undefined | null, provided: string) {
   const pass = (provided || "").trim();
   if (!pass) return false;
-  const storedPass = typeof stored === "string" ? stored : "";
+  const storedPass = (typeof stored === "string") ? stored : "";
   if (!storedPass) return false;
   // Backward compatible: support legacy plaintext + bcrypt hashes
   if (storedPass.startsWith("$2")) {
@@ -29,7 +29,7 @@ export async function GET(
     let quiz;
     try {
       quiz = await Quiz.findById(params.id).lean();
-    } catch (e) {
+    } catch {
       return NextResponse.json({ message: "Invalid Quiz ID" }, { status: 400 });
     }
     
@@ -38,7 +38,7 @@ export async function GET(
     }
 
     const session = await getServerSession(authOptions);
-    const userId = session?.user ? (session.user as any).id : null;
+    const userId = session?.user ? (session.user as { id: string }).id : null;
 
     if (!userId) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -70,9 +70,10 @@ export async function GET(
 
     // If not creator/teacher, hide correct answers from questions
     if (!canViewResults && quiz.questions) {
-      quiz.questions = quiz.questions.map((q: any) => ({
+      quiz.questions = quiz.questions.map((q: { options?: { isCorrect: boolean }[] }) => ({
         ...q,
-        options: q.options ? q.options.map((opt: any) => {
+        options: q.options ? q.options.map((opt: { isCorrect: boolean }) => {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { isCorrect, ...rest } = opt;
           return rest;
         }) : [],
@@ -80,8 +81,8 @@ export async function GET(
     }
 
     return NextResponse.json(quiz);
-  } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json({ message: error instanceof Error ? error.message : "Internal Server Error" }, { status: 500 });
   }
 }
 
@@ -102,7 +103,7 @@ export async function PUT(
       return NextResponse.json({ message: "Quiz not found" }, { status: 404 });
     }
 
-    const userId = (session.user as any).id;
+    const userId = (session.user as { id: string }).id;
     const isCreator = quiz.createdBy.toString() === userId;
     const hasPermission = isCreator || await checkQuizPermission(userId, params.id, Permission.EDIT_QUIZ);
 
@@ -113,10 +114,11 @@ export async function PUT(
     const body = await req.json().catch(() => ({}));
     
     // Remove immutable fields from body
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { _id, createdAt, updatedAt, createdBy, ...updateData } = body;
 
     if (updateData.questions) {
-      updateData.totalPoints = updateData.questions.reduce((acc: number, q: any) => acc + Number(q.points || 1), 0);
+      updateData.totalPoints = (updateData.questions as { points?: number }[]).reduce((acc: number, q) => acc + Number(q.points || 1), 0);
     }
 
     // Handle password hashing updates safely
@@ -138,8 +140,8 @@ export async function PUT(
     const updatedQuiz = await Quiz.findByIdAndUpdate(params.id, updateData, { new: true });
 
     return NextResponse.json(updatedQuiz);
-  } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json({ message: error instanceof Error ? error.message : "Internal Server Error" }, { status: 500 });
   }
 }
 
@@ -160,7 +162,7 @@ export async function DELETE(
       return NextResponse.json({ message: "Quiz not found" }, { status: 404 });
     }
 
-    const userId = (session.user as any).id;
+    const userId = (session.user as { id: string }).id;
     const isCreator = quiz.createdBy.toString() === userId;
     const hasPermission = isCreator || await checkQuizPermission(userId, params.id, Permission.DELETE_QUIZ);
 
@@ -171,7 +173,7 @@ export async function DELETE(
     await Quiz.findByIdAndDelete(params.id);
 
     return NextResponse.json({ message: "Quiz deleted" });
-  } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json({ message: error instanceof Error ? error.message : "Internal Server Error" }, { status: 500 });
   }
 }

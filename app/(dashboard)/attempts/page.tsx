@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import AttemptList from "@/components/attempt/AttemptList";
-import { History, Loader2, Calendar } from "lucide-react";
+import { History, Loader2 } from "lucide-react";
 
 export default function AttemptsHistoryPage() {
   const [attempts, setAttempts] = useState([]);

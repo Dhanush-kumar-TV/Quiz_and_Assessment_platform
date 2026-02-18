@@ -1,6 +1,7 @@
 "use client";
 
 import { CheckCircle2, Circle, Image as ImageIcon } from "lucide-react";
+import Image from "next/image";
 
 export default function QuestionDisplay({ 
   question, 
@@ -70,7 +71,7 @@ export default function QuestionDisplay({
                 {isPictureChoice && (
                   <div className="w-full aspect-square rounded-2xl overflow-hidden border border-border/50 bg-secondary/30 relative">
                      {option.image ? (
-                        <img src={option.image} alt={option.text} className="w-full h-full object-cover" />
+                        <Image src={option.image} alt={option.text} fill className="object-cover" />
                      ) : (
                         <div className="w-full h-full flex items-center justify-center opacity-20">
                             <ImageIcon className="w-12 h-12" />

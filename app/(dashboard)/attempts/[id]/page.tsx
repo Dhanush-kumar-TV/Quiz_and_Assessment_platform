@@ -6,8 +6,28 @@ import ScoreDisplay from "@/components/attempt/ScoreDisplay";
 import { Loader2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
+interface Attempt {
+    _id: string;
+    quizId: { 
+        _id: string; 
+        title: string; 
+        description: string; 
+        questions: { 
+            questionText: string; 
+            options: { text: string; isCorrect: boolean }[] 
+        }[]; 
+        showScore?: boolean 
+    };
+    score: number;
+    totalPoints: number;
+    percentage: number;
+    timeTaken: number;
+    answers: { questionIndex: number; selectedOptionIndex: number }[];
+    categoryScores: Record<string, number>;
+}
+
 export default function AttemptDetailPage({ params }: { params: { id: string } }) {
-  const [attempt, setAttempt] = useState<any>(null);
+  const [attempt, setAttempt] = useState<Attempt | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -17,7 +37,7 @@ export default function AttemptDetailPage({ params }: { params: { id: string } }
         const res = await fetch(`/api/attempts/${params.id}`);
         if (!res.ok) throw new Error("Attempt not found");
         const data = await res.json();
-        setAttempt(data);
+        setAttempt(data as Attempt);
       } catch (err) {
         console.error(err);
         router.push("/attempts");
@@ -37,17 +57,18 @@ export default function AttemptDetailPage({ params }: { params: { id: string } }
     );
   }
 
+  if (!attempt) return null;
+
   return (
     <div className="max-w-4xl mx-auto">
       <Link href="/attempts" className="inline-flex items-center gap-2 text-slate-500 hover:text-indigo-600 font-bold mb-8 transition-colors">
         <ArrowLeft className="w-4 h-4" />
         Back to History
       </Link>
-
+ 
       <ScoreDisplay 
         result={attempt} 
         quiz={attempt.quizId} 
-        rawAnswers={attempt.answers} 
       />
     </div>
   );

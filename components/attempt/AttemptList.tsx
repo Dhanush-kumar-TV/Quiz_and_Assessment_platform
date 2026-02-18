@@ -1,6 +1,8 @@
 import AttemptCard from "./AttemptCard";
 
-export default function AttemptList({ attempts }: { attempts: any[] }) {
+interface Attempt { _id: string; quizId?: { title?: string }; percentage: number; timeTaken: number; completedAt: string; }
+
+export default function AttemptList({ attempts }: { attempts: Attempt[] }) {
   if (attempts.length === 0) {
     return (
       <div className="text-center py-20 bg-card rounded-3xl border border-dashed border-border">

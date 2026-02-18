@@ -3,7 +3,6 @@
 import { useSession } from "next-auth/react";
 import QuizForm from "@/components/forms/QuizForm";
 import { useRouter } from "next/navigation";
-import { Brain } from "lucide-react";
 
 export default function CreateQuizPage() {
   const { data: session, status } = useSession();

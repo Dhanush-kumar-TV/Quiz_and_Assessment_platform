@@ -2,12 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { 
-    Users, 
     Plus, 
-    Search, 
     LayoutGrid, 
-    UserPlus, 
-    Settings,
     ChevronRight,
     Loader2,
     Briefcase,
@@ -16,12 +12,26 @@ import {
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
+interface Group {
+    _id: string;
+    name: string;
+    description?: string;
+    members?: { _id: string; name: string }[];
+    trainer?: { name: string };
+}
+
+interface User {
+    _id: string;
+    name: string;
+    role: string;
+}
+
 export default function GroupsPage() {
     const { data: session } = useSession();
     const router = useRouter();
-    const [groups, setGroups] = useState<any[]>([]);
-    const [trainers, setTrainers] = useState<any[]>([]);
-    const [allUsers, setAllUsers] = useState<any[]>([]);
+    const [groups, setGroups] = useState<Group[]>([]);
+    const [trainers, setTrainers] = useState<User[]>([]);
+    const [allUsers, setAllUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
     
@@ -34,11 +44,11 @@ export default function GroupsPage() {
     });
 
     useEffect(() => {
-        if (session && (session.user as any).role === 'user') {
+        if (session && (session.user as { role: string }).role === 'user') {
             router.push("/dashboard");
         }
         fetchData();
-        if ((session?.user as any)?.role === 'admin') {
+        if ((session?.user as { role: string })?.role === 'admin') {
             fetchAdminData();
         }
     }, [session, router]);
@@ -60,8 +70,8 @@ export default function GroupsPage() {
             const res = await fetch("/api/admin/users");
             const data = await res.json();
             if (res.ok) {
-                setTrainers(data.filter((u: any) => u.role === 'trainer' || u.role === 'admin'));
-                setAllUsers(data.filter((u: any) => u.role === 'user'));
+                setTrainers(data.filter((u: User) => u.role === 'trainer' || u.role === 'admin'));
+                setAllUsers(data.filter((u: User) => u.role === 'user'));
             }
         } catch (err) {
             console.error(err);
@@ -88,7 +98,7 @@ export default function GroupsPage() {
 
     if (loading) return <div className="flex justify-center py-20"><Loader2 className="animate-spin text-primary" /></div>;
 
-    const isAdmin = (session?.user as any)?.role === 'admin';
+    const isAdmin = (session?.user as { role: string })?.role === 'admin';
 
     return (
         <div className="max-w-7xl mx-auto space-y-12 pb-20">
@@ -109,7 +119,7 @@ export default function GroupsPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {groups.map((group: any) => (
+                {groups.map((group) => (
                     <div key={group._id} className="bg-white dark:bg-slate-900 rounded-[3rem] p-10 border border-border shadow-sm hover:shadow-2xl transition-all group relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 group-hover:bg-primary/10 transition-colors"></div>
                         <div className="relative z-10 space-y-6">

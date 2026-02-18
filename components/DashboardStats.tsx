@@ -1,6 +1,8 @@
 import { Brain, History, Target } from "lucide-react";
 
-export default function DashboardStats({ stats }: { stats: any }) {
+interface DashboardStatsData { created: number; collaborations: number; attempts: number; avgScore: number; }
+
+export default function DashboardStats({ stats }: { stats: DashboardStatsData }) {
   const cards = [
     {
       label: "Quizzes Created",

@@ -36,10 +36,10 @@ export async function POST(
     const body = await req.json().catch(() => ({}));
     const nameFromBody = typeof body?.name === "string" ? body.name.trim() : "";
     const fallbackName =
-      (session.user as any)?.name || (session.user as any)?.email || "Participant";
+      (session.user as { name?: string; email?: string }).name || (session.user as { name?: string; email?: string }).email || "Participant";
     const name = nameFromBody || fallbackName;
 
-    const userId = (session.user as any).id;
+    const userId = (session.user as { id: string }).id;
 
     const requestDoc = await QuizAccessRequest.findOneAndUpdate(
       { quizId: quiz._id, userId },
@@ -53,8 +53,8 @@ export async function POST(
     );
 
     return NextResponse.json(requestDoc, { status: 201 });
-  } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json({ message: error instanceof Error ? error.message : "Internal Server Error" }, { status: 500 });
   }
 }
 
@@ -74,7 +74,7 @@ export async function GET(
       return NextResponse.json({ message: "Quiz not found" }, { status: 404 });
     }
 
-    const userId = (session.user as any).id;
+    const userId = (session.user as { id: string }).id;
     const isCreator = quiz.createdBy.toString() === userId;
     const canManage =
       isCreator || (await checkQuizPermission(userId, params.id, Permission.MANAGE_ROLES));
@@ -92,8 +92,8 @@ export async function GET(
       .lean();
 
     return NextResponse.json(requests);
-  } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json({ message: error instanceof Error ? error.message : "Internal Server Error" }, { status: 500 });
   }
 }
 

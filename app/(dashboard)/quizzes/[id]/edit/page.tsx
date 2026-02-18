@@ -6,9 +6,21 @@ import { useRouter } from "next/navigation";
 import QuizForm from "@/components/forms/QuizForm";
 import { Edit3, Loader2 } from "lucide-react";
 
+interface Quiz {
+    _id: string;
+    title: string;
+    description: string;
+    questions: { questionText: string; options: { text: string; isCorrect: boolean; image?: string }[]; points?: number; category?: string; required?: boolean; timeLimit?: number }[];
+    isPublished: boolean;
+    showScore: boolean;
+    timeLimit: number;
+    maxAttempts: number;
+    createdBy: string | { _id: string };
+}
+
 export default function EditQuizPage({ params }: { params: { id: string } }) {
   const { data: session, status } = useSession();
-  const [quiz, setQuiz] = useState<any>(null);
+  const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -19,10 +31,10 @@ export default function EditQuizPage({ params }: { params: { id: string } }) {
         const data = await res.json();
         
         // Security check handled on server, but double check here
-        if (session && data.createdBy !== (session.user as any).id && data.createdBy?._id !== (session.user as any).id) {
+        if (session && data.createdBy !== (session.user as { id: string }).id && (typeof data.createdBy === 'object' ? data.createdBy._id : data.createdBy) !== (session.user as { id: string }).id) {
            // router.push("/dashboard");
         }
-        setQuiz(data);
+        setQuiz(data as Quiz);
       } catch (err) {
         console.error(err);
       } finally {
@@ -53,7 +65,7 @@ export default function EditQuizPage({ params }: { params: { id: string } }) {
         </div>
       </div>
 
-      <QuizForm initialData={quiz} />
+      <QuizForm initialData={quiz ?? undefined} />
     </div>
   );
 }

@@ -4,31 +4,38 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import DashboardStats from "@/components/DashboardStats";
 import RecentActivity from "@/components/RecentActivity";
-import Link from "next/link";
-import { PlusCircle, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 export default function DashboardPage() {
   const { data: session } = useSession();
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<{
+    created: number;
+    collaborations: number;
+    attempts: number;
+    avgScore: string | number;
+    recentQuizzes: { _id: string; title: string; createdBy: string }[];
+    recentCollaborations: { _id: string; title: string; createdBy: string }[];
+    recentAttempts: { _id: string; quizId: { title: string }; percentage: number; createdAt: string }[];
+  } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchDashboardData() {
       try {
         const [quizzesRes, attemptsRes] = await Promise.all([
-          fetch(`/api/quizzes?userId=${(session?.user as any).id}`),
+          fetch(`/api/quizzes?userId=${(session?.user as { id: string }).id}`),
           fetch(`/api/attempts`),
         ]);
 
         const quizzes = await quizzesRes.json();
         const attempts = await attemptsRes.json();
 
-        const createdQuizzes = quizzes.filter((q: any) => q.createdBy === (session?.user as any).id);
-        const collaborations = quizzes.filter((q: any) => q.createdBy !== (session?.user as any).id);
+        const createdQuizzes = quizzes.filter((q: { createdBy: string }) => q.createdBy === (session?.user as { id: string }).id);
+        const collaborations = quizzes.filter((q: { createdBy: string }) => q.createdBy !== (session?.user as { id: string }).id);
 
         const totalAttempts = attempts.length;
         const averageScore = attempts.length 
-          ? (attempts.reduce((acc: number, a: any) => acc + a.percentage, 0) / attempts.length).toFixed(1)
+          ? (attempts.reduce((acc: number, a: { percentage: number }) => acc + a.percentage, 0) / attempts.length).toFixed(1)
           : 0;
 
         setStats({
@@ -36,9 +43,9 @@ export default function DashboardPage() {
           collaborations: collaborations.length,
           attempts: totalAttempts,
           avgScore: averageScore,
-          recentQuizzes: createdQuizzes.slice(0, 5),
-          recentCollaborations: collaborations.slice(0, 5),
-          recentAttempts: attempts.slice(0, 5),
+          recentQuizzes: createdQuizzes.slice(0, 5) as { _id: string; title: string; createdBy: string }[],
+          recentCollaborations: collaborations.slice(0, 5) as { _id: string; title: string; createdBy: string }[],
+          recentAttempts: attempts.slice(0, 5) as { _id: string; quizId: { title: string }; percentage: number; createdAt: string }[],
         });
       } catch (error) {
         console.error("Failed to fetch dashboard data", error);
@@ -73,17 +80,17 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <RecentActivity 
           title="Your Creations" 
-          items={stats.recentQuizzes} 
+          items={stats?.recentQuizzes || []} 
           type="quiz" 
         />
         <RecentActivity 
           title="Collaborations" 
-          items={stats.recentCollaborations} 
+          items={stats?.recentCollaborations || []} 
           type="quiz" 
         />
         <RecentActivity 
           title="Recent Attempts" 
-          items={stats.recentAttempts} 
+          items={stats?.recentAttempts || []} 
           type="attempt" 
         />
       </div>

@@ -37,7 +37,7 @@ export async function GET() {
         });
 
         return NextResponse.json(leaderboard);
-    } catch (error) {
+    } catch (error: unknown) {
         console.error("Leaderboard API Error:", error);
         return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
     }

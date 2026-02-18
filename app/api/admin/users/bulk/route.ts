@@ -10,7 +10,7 @@ import { sendWelcomeEmail } from "@/lib/emailService";
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session || (session.user as any).role !== 'admin') {
+    if (!session || (session.user as { role?: string }).role !== 'admin') {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
@@ -25,7 +25,7 @@ export async function POST(req: Request) {
     const workbook = XLSX.read(bytes, { type: "buffer" });
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
-    const rows = XLSX.utils.sheet_to_json(sheet) as any[];
+    const rows = XLSX.utils.sheet_to_json(sheet) as { name?: string; email?: string; password?: string | number }[];
 
     await connectToDatabase();
 
@@ -64,14 +64,14 @@ export async function POST(req: Request) {
         await sendWelcomeEmail(email, name, password.toString());
         
         results.success++;
-      } catch (err: any) {
+      } catch (err: unknown) {
         results.errors++;
-        results.details.push(`Error creating ${email}: ${err.message}`);
+        results.details.push(`Error creating ${email}: ${err instanceof Error ? err.message : String(err)}`);
       }
     }
 
     return NextResponse.json(results);
-  } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json({ message: error instanceof Error ? error.message : "Internal Server Error" }, { status: 500 });
   }
 }

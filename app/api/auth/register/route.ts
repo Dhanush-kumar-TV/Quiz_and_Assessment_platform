@@ -1,5 +1,4 @@
-import { NextResponse } from "next-api-response"; // Wait, it's next/server
-import { NextResponse as NextServerResponse } from "next/server";
+import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import connectToDatabase from "@/lib/mongodb";
 import User from "@/lib/models/User";
@@ -9,7 +8,7 @@ export async function POST(req: Request) {
     const { name, email, password } = await req.json();
 
     if (!name || !email || !password) {
-      return NextServerResponse.json(
+      return NextResponse.json(
         { message: "Missing required fields" },
         { status: 400 }
       );
@@ -19,7 +18,7 @@ export async function POST(req: Request) {
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return NextServerResponse.json(
+      return NextResponse.json(
         { message: "User already exists" },
         { status: 400 }
       );
@@ -33,13 +32,13 @@ export async function POST(req: Request) {
       password: hashedPassword,
     });
 
-    return NextServerResponse.json(
+    return NextResponse.json(
       { message: "User registered successfully", userId: user._id },
       { status: 201 }
     );
-  } catch (error: any) {
-    return NextServerResponse.json(
-      { message: "Internal server error", error: error.message },
+  } catch (error: unknown) {
+    return NextResponse.json(
+      { message: "Internal server error", error: error instanceof Error ? error.message : "Undefined error" },
       { status: 500 }
     );
   }

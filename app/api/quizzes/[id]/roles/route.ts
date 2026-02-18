@@ -14,7 +14,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 
     await connectToDatabase();
 
-    const userId = (session.user as any).id;
+    const userId = (session.user as { id: string }).id;
     const quiz = await Quiz.findById(params.id);
     if (!quiz) return NextResponse.json({ message: "Quiz not found" }, { status: 404 });
 
@@ -31,7 +31,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     roles = JSON.parse(JSON.stringify(roles));
 
     // Check if creator is already in roles
-    const hasCreator = roles.some((r: any) => r.userId?._id?.toString() === quiz.createdBy.toString() || r.role === 'creator');
+    const hasCreator = roles.some((r: { userId?: { _id?: string }; role?: string }) => r.userId?._id?.toString() === quiz.createdBy.toString() || r.role === 'creator');
     
     if (!hasCreator) {
       const creator = await User.findById(quiz.createdBy).select('name email');
@@ -52,9 +52,9 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     }
 
     return NextResponse.json(roles);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[GET Roles Error]", error);
-    return NextResponse.json({ message: error.message }, { status: 500 });
+    return NextResponse.json({ message: error instanceof Error ? error.message : "Internal Server Error" }, { status: 500 });
   }
 }
 
@@ -72,7 +72,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
     await connectToDatabase();
 
-    const userId = (session.user as any).id;
+    const userId = (session.user as { id: string }).id;
     const quiz = await Quiz.findById(params.id);
     if (!quiz) return NextResponse.json({ message: "Quiz not found" }, { status: 404 });
 
@@ -95,16 +95,16 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     // Create or update role
     const updatedRole = await QuizRole.findOneAndUpdate(
       { quizId: params.id, userId: userToAssign._id },
-      { role, assignedBy: (session.user as any).id },
+      { role, assignedBy: (session.user as { id: string }).id },
       { upsert: true, new: true }
     );
 
     console.log(`[POST Role] Successfully assigned role ${role} to ${userToAssign.email}`);
 
     return NextResponse.json(updatedRole);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[POST Role Error]", error);
-    return NextResponse.json({ message: error.message }, { status: 500 });
+    return NextResponse.json({ message: error instanceof Error ? error.message : "Internal Server Error" }, { status: 500 });
   }
 }
 
@@ -120,7 +120,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
 
     await connectToDatabase();
 
-    const userId = (session.user as any).id;
+    const userId = (session.user as { id: string }).id;
     const quiz = await Quiz.findById(params.id);
     if (!quiz) return NextResponse.json({ message: "Quiz not found" }, { status: 404 });
 
@@ -141,8 +141,8 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
     console.log(`[DELETE Role] Removed collaborator ${userIdToRemove} from quiz ${params.id}`);
     
     return NextResponse.json({ message: "Role removed" });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[DELETE Role Error]", error);
-    return NextResponse.json({ message: error.message }, { status: 500 });
+    return NextResponse.json({ message: error instanceof Error ? error.message : "Internal Server Error" }, { status: 500 });
   }
 }

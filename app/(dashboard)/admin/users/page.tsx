@@ -3,15 +3,10 @@
 import { useEffect, useState } from "react";
 import { 
     Users, 
-    Shield, 
-    UserPlus, 
     Search, 
-    MoreVertical, 
     UserX, 
     UserCheck, 
-    Briefcase,
     Loader2,
-    Filter,
     Upload,
     CheckCircle,
     X
@@ -19,18 +14,26 @@ import {
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
+interface User {
+    _id: string;
+    name: string;
+    email: string;
+    role: string;
+    status: string;
+}
+
 export default function AdminUsersPage() {
     const { data: session } = useSession();
     const router = useRouter();
-    const [users, setUsers] = useState<any[]>([]);
+    const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
     const [filter, setFilter] = useState("all");
     const [uploading, setUploading] = useState(false);
-    const [uploadStatus, setUploadStatus] = useState<any>(null);
+    const [uploadStatus, setUploadStatus] = useState<{ success: number; errors: number; details: string[] } | null>(null);
 
     useEffect(() => {
-        if (session && (session.user as any).role !== 'admin') {
+        if (session && (session.user as { role?: string }).role !== 'admin') {
             router.push("/dashboard");
         }
         fetchUsers();
@@ -77,7 +80,7 @@ export default function AdminUsersPage() {
         }
     };
 
-    const updateUser = async (userId: string, update: any) => {
+    const updateUser = async (userId: string, update: Partial<User>) => {
         try {
             const res = await fetch("/api/admin/users", {
                 method: "PATCH",

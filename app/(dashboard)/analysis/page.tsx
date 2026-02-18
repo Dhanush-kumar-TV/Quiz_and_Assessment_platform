@@ -6,24 +6,33 @@ import {
     BarChart3, 
     TrendingUp, 
     Target, 
-    Clock, 
-    CheckCircle2, 
-    XCircle, 
-    ArrowUpRight, 
-    Calendar,
-    ChevronRight,
     Loader2,
     Trophy,
     Settings,
-    ChevronDown,
     User as UserIcon
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
+
+interface Attempt {
+    _id: string;
+    percentage: number;
+    createdAt: string;
+    quizId: { _id: string; title: string };
+}
+
+interface LeaderboardUser {
+    name: string;
+    email: string;
+    image?: string;
+    totalScore: number;
+    attemptCount: number;
+}
 
 export default function AnalysisPage() {
     const { data: session } = useSession();
-    const [attempts, setAttempts] = useState<any[]>([]);
-    const [leaderboard, setLeaderboard] = useState<any[]>([]);
+    const [attempts, setAttempts] = useState<Attempt[]>([]);
+    const [leaderboard, setLeaderboard] = useState<LeaderboardUser[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -103,9 +112,9 @@ export default function AnalysisPage() {
                                 <TrendingUp className="w-3.5 h-3.5" />
                                 <span className="text-[10px] font-black uppercase tracking-widest">Reviews growth</span>
                             </div>
-                            <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md overflow-hidden flex items-center justify-center">
+                            <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md overflow-hidden flex items-center justify-center relative">
                                 {session?.user?.image ? (
-                                    <img src={session.user.image} className="w-full h-full object-cover" />
+                                    <Image src={session.user.image} alt={session.user.name || "User"} fill className="object-cover" />
                                 ) : (
                                     <UserIcon className="w-4 h-4 text-white/60" />
                                 )}
@@ -157,9 +166,9 @@ export default function AnalysisPage() {
                     {/* Profile Summary Widget */}
                     <div className="bg-card rounded-3xl border border-border p-6 text-center space-y-4 shadow-xl shadow-slate-100/50 dark:shadow-none hover:shadow-2xl transition-all duration-300">
                         <div className="relative inline-block">
-                             <div className="w-20 h-20 rounded-2xl bg-secondary flex items-center justify-center overflow-hidden mx-auto border border-border">
+                             <div className="w-20 h-20 rounded-2xl bg-secondary flex items-center justify-center overflow-hidden mx-auto border border-border relative">
                                 {session?.user?.image ? (
-                                    <img src={session.user.image} alt="" className="w-full h-full object-cover" />
+                                    <Image src={session.user.image} alt={session?.user?.name || "Profile"} fill className="object-cover" />
                                 ) : (
                                     <UserIcon className="w-10 h-10 text-muted-foreground" />
                                 )}
@@ -225,9 +234,9 @@ export default function AnalysisPage() {
                             ) : (
                                 leaderList.slice(0, 10).map((user, i) => (
                                     <div key={i} className="flex-grow h-full flex flex-col-reverse gap-1.5 items-center group relative cursor-pointer">
-                                        <div className="w-6 h-6 rounded-full border-2 border-background bg-secondary flex items-center justify-center overflow-hidden shadow-sm shrink-0">
+                                    <div className="w-6 h-6 rounded-full border-2 border-background bg-secondary flex items-center justify-center overflow-hidden shadow-sm shrink-0 relative">
                                             {user.image ? (
-                                                <img src={user.image} className="w-full h-full object-cover" />
+                                                <Image src={user.image} alt={user.name} fill className="object-cover" />
                                             ) : (
                                                 <UserIcon className="w-3 h-3 text-muted-foreground" />
                                             )}
@@ -252,9 +261,9 @@ export default function AnalysisPage() {
                         <div className="mt-6">
                             <div className="flex -space-x-2 overflow-hidden">
                                 {leaderList.slice(0, 5).map((u, i) => (
-                                    <div key={i} className="inline-block h-6 w-6 rounded-full ring-2 ring-card bg-secondary flex items-center justify-center overflow-hidden">
+                                    <div key={i} className="inline-block h-6 w-6 rounded-full ring-2 ring-card bg-secondary flex items-center justify-center overflow-hidden relative">
                                         {u.image ? (
-                                            <img src={u.image} alt="" className="w-full h-full object-cover" />
+                                            <Image src={u.image} alt={u.name} fill className="object-cover" />
                                         ) : (
                                             <UserIcon className="w-3 h-3 text-muted-foreground" />
                                         )}
@@ -281,9 +290,9 @@ export default function AnalysisPage() {
                                                 <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-black ${i === 0 ? 'bg-primary text-foreground' : i === 1 ? 'bg-primary/50 text-foreground' : 'bg-secondary text-muted-foreground'}`}>
                                                     #{i + 1}
                                                 </div>
-                                                <div className="w-8 h-8 rounded-full border border-border bg-secondary flex items-center justify-center overflow-hidden">
+                                                <div className="w-8 h-8 rounded-full border border-border bg-secondary flex items-center justify-center overflow-hidden relative">
                                                     {user.image ? (
-                                                        <img src={user.image} className="w-full h-full object-cover" />
+                                                        <Image src={user.image} alt={user.name} fill className="object-cover" />
                                                     ) : (
                                                         <UserIcon className="w-4 h-4 text-muted-foreground" />
                                                     )}

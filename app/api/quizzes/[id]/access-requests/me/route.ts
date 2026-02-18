@@ -22,7 +22,7 @@ export async function GET(
       return NextResponse.json({ message: "Quiz not found" }, { status: 404 });
     }
 
-    const userId = (session.user as any).id;
+    const userId = (session.user as { id: string }).id;
     const requestDoc = await QuizAccessRequest.findOne({ quizId: quiz._id, userId }).lean();
     const roleDoc = await QuizRole.findOne({ quizId: quiz._id, userId }).lean();
 
@@ -31,8 +31,8 @@ export async function GET(
       requestName: requestDoc?.name || null,
       role: roleDoc?.role || null,
     });
-  } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json({ message: error instanceof Error ? error.message : "Internal Server Error" }, { status: 500 });
   }
 }
 

@@ -57,10 +57,10 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id;
-        token.image = (user as any).image;
-        token.theme = (user as any).theme;
-        token.role = (user as any).role;
-        token.status = (user as any).status;
+        token.image = (user as { image?: string }).image;
+        token.theme = (user as { theme?: string }).theme;
+        token.role = (user as { role?: string }).role;
+        token.status = (user as { status?: string }).status;
       }
       // Handle session updates
       if (trigger === "update" && session) {
@@ -74,11 +74,11 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       if (session.user) {
-        (session.user as any).id = token.id;
-        (session.user as any).image = token.image;
-        (session.user as any).theme = token.theme;
-        (session.user as any).role = token.role;
-        (session.user as any).status = token.status;
+        (session.user as { id?: string }).id = token.id as string;
+        (session.user as { image?: string }).image = token.image as string;
+        (session.user as { theme?: string }).theme = token.theme as string;
+        (session.user as { role?: string }).role = token.role as string;
+        (session.user as { status?: string }).status = token.status as string;
       }
       return session;
     }

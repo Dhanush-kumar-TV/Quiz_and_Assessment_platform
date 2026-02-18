@@ -3,7 +3,6 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import connectToDatabase from "@/lib/mongodb";
 import Attempt from "@/lib/models/Attempt";
-import Quiz from "@/lib/models/Quiz";
 
 export async function GET(
   req: Request,
@@ -23,16 +22,16 @@ export async function GET(
     }
 
     // Check if user is the one who took the quiz or the creator of the quiz
-    const isOwner = (session.user as any).id === attempt.userId.toString();
-    const quiz = attempt.quizId as any;
-    const isCreator = (session.user as any).id === quiz.createdBy.toString();
+    const isOwner = (session.user as { id: string }).id === attempt.userId.toString();
+    const quiz = attempt.quizId as { createdBy: { toString: () => string } };
+    const isCreator = (session.user as { id: string }).id === quiz.createdBy.toString();
 
     if (!isOwner && !isCreator) {
       return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
     return NextResponse.json(attempt);
-  } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json({ message: error instanceof Error ? error.message : "Internal Server Error" }, { status: 500 });
   }
 }

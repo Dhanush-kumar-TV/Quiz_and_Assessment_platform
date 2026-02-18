@@ -3,12 +3,23 @@
 import { useEffect, useState } from "react";
 import { useSession, signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Brain, Clock, HelpCircle, Trophy, Play, Edit, Trash2, Loader2, ArrowLeft, TrendingUp } from "lucide-react";
+import { Clock, HelpCircle, Trophy, Play, Edit, Trash2, Loader2, ArrowLeft, TrendingUp } from "lucide-react";
 import Link from "next/link";
+
+interface Quiz {
+    _id: string;
+    title: string;
+    description: string;
+    questions: { questionText: string; options: { text: string; isCorrect: boolean }[]; points?: number; category?: string }[];
+    totalPoints: number;
+    timeLimit: number;
+    isPublished: boolean;
+    createdBy: { _id: string; name: string } | string;
+}
 
 export default function QuizDetailsPage({ params }: { params: { id: string } }) {
   const { data: session, status: authStatus } = useSession();
-  const [quiz, setQuiz] = useState<any>(null);
+  const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -29,12 +40,12 @@ export default function QuizDetailsPage({ params }: { params: { id: string } }) 
           throw new Error(errorData.message || `Error: ${res.status}`);
         }
         const data = await res.json();
-        setQuiz(data);
-      } catch (err: any) {
-        console.error("Failed to fetch quiz:", err.message);
-        setError(err.message); // Ensure error state is set
-        // Only redirect if it's a 404 or specifically forbidden
-        if (err.message.includes("404") || err.message.includes("403")) {
+        setQuiz(data as Quiz);
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.error("Failed to fetch quiz:", message);
+        setError(message);
+        if (message.includes("404") || message.includes("403")) {
            router.push("/quizzes");
         }
       } finally {
@@ -50,7 +61,7 @@ export default function QuizDetailsPage({ params }: { params: { id: string } }) 
     try {
       const res = await fetch(`/api/quizzes/${params.id}`, { method: "DELETE" });
       if (res.ok) router.push("/dashboard");
-    } catch (err) {
+    } catch {
       alert("Failed to delete quiz");
     }
   };
@@ -67,13 +78,13 @@ export default function QuizDetailsPage({ params }: { params: { id: string } }) 
   if (!quiz) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <p className="text-muted-foreground">Quiz not found or inaccessible.</p>
+        <p className="text-muted-foreground">{error || "Quiz not found or inaccessible."}</p>
         <Link href="/quizzes" className="text-primary font-bold hover:underline">Return to Explorer</Link>
       </div>
     );
   }
 
-  const isCreator = session && (session.user as any).id === (quiz?.createdBy?._id || quiz?.createdBy);
+  const isCreator = session && (session.user as { id: string }).id === (typeof quiz?.createdBy === 'object' ? quiz.createdBy._id : quiz?.createdBy);
 
   return (
     <div className="max-w-4xl mx-auto">

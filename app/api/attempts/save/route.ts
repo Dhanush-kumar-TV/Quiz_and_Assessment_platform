@@ -7,10 +7,10 @@ import Quiz from "@/lib/models/Quiz";
 import { checkQuizPermission, Permission } from "@/lib/permissions";
 import bcrypt from "bcryptjs";
 
-async function isPasscodeValid(stored: any, provided: string) {
+async function isPasscodeValid(stored: string | undefined | null, provided: string) {
   const pass = (provided || "").trim();
   if (!pass) return false;
-  const storedPass = typeof stored === "string" ? stored : "";
+  const storedPass = (typeof stored === "string") ? stored : "";
   if (!storedPass) return false;
   if (storedPass.startsWith("$2")) {
     return await bcrypt.compare(pass, storedPass);
@@ -32,7 +32,7 @@ export async function POST(req: Request) {
     }
 
     await connectToDatabase();
-    const userId = (session.user as any).id;
+    const userId = (session.user as { id: string }).id;
 
     // Enforce access rules (prevents direct save bypass)
     const quiz = await Quiz.findById(quizId).lean();
@@ -65,7 +65,7 @@ export async function POST(req: Request) {
     );
 
     return NextResponse.json(attempt, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json({ message: error instanceof Error ? error.message : "Internal Server Error" }, { status: 500 });
   }
 }

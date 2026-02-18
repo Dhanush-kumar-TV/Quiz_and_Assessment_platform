@@ -12,8 +12,8 @@ export async function GET() {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const userRole = (session.user as any).role;
-    const userId = (session.user as any).id;
+    const userRole = (session.user as { role?: string }).role;
+    const userId = (session.user as { id: string }).id;
 
     await connectToDatabase();
     
@@ -27,15 +27,15 @@ export async function GET() {
     }
 
     return NextResponse.json(groups);
-  } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json({ message: error instanceof Error ? error.message : "Internal Server Error" }, { status: 500 });
   }
 }
 
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session || (session.user as any).role !== 'admin') {
+    if (!session || (session.user as { role?: string }).role !== 'admin') {
       return NextResponse.json({ message: "Only admins can create groups" }, { status: 401 });
     }
 
@@ -63,8 +63,8 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json(newGroup);
-  } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json({ message: error instanceof Error ? error.message : "Internal Server Error" }, { status: 500 });
   }
 }
 
@@ -74,8 +74,8 @@ export async function PATCH(req: Request) {
       if (!session) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   
       const { groupId, name, description, trainerId, memberIds } = await req.json();
-      const userRole = (session.user as any).role;
-      const userId = (session.user as any).id;
+      const userRole = (session.user as { role?: string }).role;
+      const userId = (session.user as { id: string }).id;
   
       await connectToDatabase();
       
@@ -87,7 +87,7 @@ export async function PATCH(req: Request) {
         return NextResponse.json({ message: "Forbidden" }, { status: 403 });
       }
   
-      const update: any = {};
+      const update: { name?: string; description?: string; trainer?: string; members?: string[] } = {};
       if (name) update.name = name;
       if (description) update.description = description;
       if (trainerId && userRole === 'admin') update.trainer = trainerId;
@@ -110,7 +110,7 @@ export async function PATCH(req: Request) {
       }
   
       return NextResponse.json(updatedGroup);
-    } catch (error: any) {
-      return NextResponse.json({ message: error.message }, { status: 500 });
-    }
+  } catch (error: unknown) {
+    return NextResponse.json({ message: error instanceof Error ? error.message : "Internal Server Error" }, { status: 500 });
+  }
 }
