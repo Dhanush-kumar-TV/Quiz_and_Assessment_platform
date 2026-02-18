@@ -69,9 +69,9 @@ export default function Home() {
               </Link>
               {!session && (
                 <Link href="/register">
-                  <button className="h-14 px-8 text-lg font-bold rounded-2xl border border-slate-700 text-white hover:bg-white/5 transition-all">
-                    Sign Up Free
-                  </button>
+                    <button className="h-14 px-8 text-lg font-bold rounded-2xl border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-all">
+                      Sign Up Free
+                    </button>
                 </Link>
               )}
             </div>

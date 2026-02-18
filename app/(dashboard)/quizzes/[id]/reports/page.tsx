@@ -63,7 +63,7 @@ interface ReportData { quiz: { title: string; questions: QuizQuestion[] }; attem
     );
 
     return (
-        <div className="max-w-7xl mx-auto space-y-12 pb-20 animate-in fade-in duration-700">
+        <div className="max-w-7xl mx-auto space-y-12 pb-20 animate-in fade-in duration-700 px-4 md:px-6"> 
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
@@ -74,15 +74,15 @@ interface ReportData { quiz: { title: string; questions: QuizQuestion[] }; attem
                         <ArrowLeft className="w-4 h-4" />
                         Back to Quiz
                     </button>
-                    <h1 className="text-4xl font-black text-slate-900 leading-tight">Reports & Insights</h1>
+                    <h1 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white leading-tight">Reports & Insights</h1>
                     <p className="text-lg text-muted-foreground font-medium mt-2">{quiz.title}</p>
                 </div>
-                <div className="flex items-center gap-4 bg-white dark:bg-slate-900 p-4 rounded-3xl border border-border/50 shadow-sm">
+                <div className="flex items-center gap-4 bg-white dark:bg-slate-900 p-4 rounded-3xl border border-border/50 shadow-sm w-full md:w-auto">
                     <Search className="w-5 h-5 text-muted-foreground ml-2" />
                     <input 
                         type="text"
                         placeholder="Search participants..."
-                        className="bg-transparent border-none focus:ring-0 font-bold text-sm w-48 lg:w-64"
+                        className="bg-transparent border-none focus:ring-0 font-bold text-sm w-full md:w-64 text-foreground placeholder:text-muted-foreground"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -90,7 +90,7 @@ interface ReportData { quiz: { title: string; questions: QuizQuestion[] }; attem
             </div>
 
             {/* Quick Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 <StatCard 
                     label="Total Participants" 
                     value={stats.totalAttempts} 
@@ -123,8 +123,8 @@ interface ReportData { quiz: { title: string; questions: QuizQuestion[] }; attem
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Category Breakdown */}
-                <div className="lg:col-span-1 bg-white dark:bg-slate-900 rounded-[3rem] p-10 border border-slate-200 dark:border-slate-800 shadow-sm">
-                    <h2 className="text-xl font-black mb-8 flex items-center gap-3">
+                <div className="lg:col-span-1 bg-white dark:bg-slate-900 rounded-[2rem] md:rounded-[3rem] p-6 md:p-10 border border-slate-200 dark:border-slate-800 shadow-sm">
+                    <h2 className="text-xl font-black mb-8 flex items-center gap-3 text-foreground">
                         <Target className="w-6 h-6 text-primary" />
                         Category Performance
                     </h2>
@@ -141,7 +141,7 @@ interface ReportData { quiz: { title: string; questions: QuizQuestion[] }; attem
 
                                 return (
                                     <div key={cat} className="space-y-2">
-                                        <div className="flex justify-between text-sm font-bold capitalize">
+                                        <div className="flex justify-between text-sm font-bold capitalize text-foreground">
                                             <span>{cat}</span>
                                             <span className="text-primary">{percentage.toFixed(0)}%</span>
                                         </div>
@@ -163,9 +163,9 @@ interface ReportData { quiz: { title: string; questions: QuizQuestion[] }; attem
                 </div>
 
                 {/* Participant List */}
-                <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-[3rem] p-4 border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+                <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-[2rem] md:rounded-[3rem] p-4 border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
                     <div className="p-6 pb-0">
-                        <h2 className="text-xl font-black flex items-center gap-3">
+                        <h2 className="text-xl font-black flex items-center gap-3 text-foreground">
                             <Users className="w-6 h-6 text-primary" />
                             Recent Participants
                         </h2>
@@ -185,20 +185,20 @@ interface ReportData { quiz: { title: string; questions: QuizQuestion[] }; attem
                                     <tr key={attempt._id} className="group hover:bg-secondary/20 transition-colors">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-xl bg-primary/5 flex items-center justify-center text-primary font-black">
+                                                <div className="w-10 h-10 rounded-xl bg-primary/5 flex items-center justify-center text-primary font-black shrink-0">
                                                     {attempt.userId?.name?.charAt(0) || "?"}
                                                 </div>
-                                                <div>
-                                                    <p className="font-bold text-slate-900">{attempt.userId?.name || "Deleted User"}</p>
-                                                    <p className="text-xs text-muted-foreground">{attempt.userId?.email}</p>
+                                                <div className="min-w-0">
+                                                    <p className="font-bold text-slate-900 dark:text-slate-100 truncate">{attempt.userId?.name || "Deleted User"}</p>
+                                                    <p className="text-xs text-muted-foreground truncate">{attempt.userId?.email}</p>
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${
+                                            <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border whitespace-nowrap ${
                                                 attempt.status === 'completed' 
-                                                ? 'bg-emerald-50 text-emerald-600 border-emerald-100' 
-                                                : 'bg-amber-50 text-amber-600 border-amber-100'
+                                                ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/50' 
+                                                : 'bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 border-amber-100 dark:border-amber-900/50'
                                             }`}>
                                                 {attempt.status || 'completed'}
                                             </span>
@@ -206,15 +206,15 @@ interface ReportData { quiz: { title: string; questions: QuizQuestion[] }; attem
                                         <td className="px-6 py-4 text-center">
                                             {attempt.status === 'completed' ? (
                                                 <div>
-                                                    <p className="font-black text-slate-900">{attempt.percentage?.toFixed(0)}%</p>
-                                                    <p className="text-[10px] text-muted-foreground font-bold">{attempt.score} / {attempt.totalPoints}</p>
+                                                    <p className="font-black text-slate-900 dark:text-slate-100">{attempt.percentage?.toFixed(0)}%</p>
+                                                    <p className="text-[10px] text-muted-foreground font-bold whitespace-nowrap">{attempt.score} / {attempt.totalPoints}</p>
                                                 </div>
                                             ) : (
-                                                <span className="text-muted-foreground italic text-xs">In progress</span>
+                                                <span className="text-muted-foreground italic text-xs whitespace-nowrap">In progress</span>
                                             )}
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className="flex items-center gap-2 text-muted-foreground text-xs font-bold">
+                                            <div className="flex items-center gap-2 text-muted-foreground text-xs font-bold whitespace-nowrap">
                                                 <Calendar className="w-3 h-3" />
                                                 {new Date(attempt.createdAt).toLocaleDateString()}
                                             </div>
@@ -241,9 +241,9 @@ interface ReportData { quiz: { title: string; questions: QuizQuestion[] }; attem
 function StatCard({ label, value, sub, icon, color }: { label: string; value: string | number; sub: string; icon: React.ReactNode; color: string }) {
     const colorClasses: Record<string, string> = {
         primary: "bg-primary/5 text-primary",
-        emerald: "bg-emerald-50 text-emerald-600",
-        amber: "bg-amber-50 text-amber-600",
-        blue: "bg-blue-50 text-blue-600",
+        emerald: "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400",
+        amber: "bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400",
+        blue: "bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400",
     };
 
     return (
@@ -252,7 +252,7 @@ function StatCard({ label, value, sub, icon, color }: { label: string; value: st
                 {icon}
             </div>
             <p className="text-sm font-black uppercase tracking-widest text-muted-foreground mb-1">{label}</p>
-            <h3 className="text-4xl font-black text-slate-900 mb-2">{value}</h3>
+            <h3 className="text-4xl font-black text-slate-900 dark:text-white mb-2">{value}</h3>
             <p className="text-xs text-muted-foreground font-medium">{sub}</p>
         </div>
     );
