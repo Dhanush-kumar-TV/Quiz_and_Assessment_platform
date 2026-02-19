@@ -24,17 +24,17 @@ export default function Navbar() {
 
   return (
     <nav className="bg-background/80 backdrop-blur-md shadow-sm border-b border-border sticky top-0 z-50">
-      <div className="container mx-auto px-4 h-20 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-primary-foreground shadow-lg shadow-slate-200/50 dark:shadow-none transition-transform group-hover:rotate-12 duration-300">
-            <Brain className="w-6 h-6" />
+      <div className="container mx-auto px-4 h-16 md:h-20 flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-2 group shrink-0">
+          <div className="w-8 h-8 md:w-10 md:h-10 bg-primary rounded-xl flex items-center justify-center text-primary-foreground shadow-lg shadow-slate-200/50 dark:shadow-none transition-transform group-hover:rotate-12 duration-300">
+            <Brain className="w-5 h-5 md:w-6 md:h-6" />
           </div>
-          <span className="font-black text-2xl text-foreground tracking-tight">QuizMaster</span>
+          <span className="font-black text-xl md:text-2xl text-foreground tracking-tight">QuizMaster</span>
         </Link>
 
-        <div className="flex items-center gap-4">
-          {/* Theme Toggle */}
-          <div className="flex bg-secondary p-1.5 rounded-2xl gap-1">
+        <div className="flex items-center gap-2 md:gap-4">
+          {/* Theme Toggle - Desktop (Segmented) */}
+          <div className="hidden md:flex bg-secondary p-1.5 rounded-2xl gap-1">
             <button 
               onClick={() => setTheme('light')}
               className={`p-1.5 rounded-xl transition-all ${theme === 'light' ? 'bg-background text-amber-500 shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
@@ -55,9 +55,17 @@ export default function Navbar() {
             </button>
           </div>
 
-          <div className="h-8 w-px bg-border mx-2"></div>
+          {/* Theme Toggle - Mobile (Compact Cycle) */}
+          <button 
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            className="md:hidden p-2 rounded-xl bg-secondary/50 text-foreground hover:bg-secondary transition-colors"
+          >
+             {theme === 'dark' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+          </button>
 
-          <div className="flex items-center gap-6">
+          <div className="h-6 w-px bg-border mx-1 md:h-8 md:mx-2"></div>
+
+          <div className="flex items-center gap-2 md:gap-6">
             {session ? (
               <>
                   <div className="hidden md:flex items-center gap-4">
@@ -128,18 +136,18 @@ export default function Navbar() {
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                     className="flex items-center gap-3 p-1 rounded-2xl hover:bg-secondary transition-all group"
                   >
-                    <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary overflow-hidden border-2 border-background shadow-sm relative">
+                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl md:rounded-2xl bg-primary/10 flex items-center justify-center text-primary overflow-hidden border-2 border-background shadow-sm relative">
                       {(session.user as { image?: string })?.image ? (
                         <Image src={(session.user as { image: string }).image} alt="User" fill className="object-cover" />
                       ) : (
-                        <User className="w-6 h-6" />
+                        <User className="w-5 h-5 md:w-6 md:h-6" />
                       )}
                     </div>
                     <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
                   </button>
 
                   {isDropdownOpen && (
-                    <div className="absolute top-full right-0 mt-2 w-64 bg-card rounded-3xl shadow-2xl shadow-slate-100/50 dark:shadow-none border border-border overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                    <div className="absolute top-full right-0 mt-2 w-64 bg-card rounded-3xl shadow-2xl shadow-slate-100/50 dark:shadow-none border border-border overflow-hidden animate-in fade-in zoom-in-95 duration-200 origin-top-right">
                       <div className="p-5 border-b border-border">
                         <p className="text-sm font-black text-foreground truncate">{session.user?.name}</p>
                         <p className="text-xs font-semibold text-muted-foreground truncate">{session.user?.email}</p>
@@ -220,10 +228,10 @@ export default function Navbar() {
               </>
             ) : (
               <>
-                <Link href="/login" className="text-muted-foreground hover:text-primary text-sm font-bold transition-colors">
+                <Link href="/login" className="text-foreground hover:text-primary text-sm font-bold transition-colors">
                   Login
                 </Link>
-                <Link href="/register" className="bg-primary text-primary-foreground px-8 py-3 rounded-2xl text-sm font-black hover:opacity-90 transition-all shadow-xl shadow-slate-100/50 dark:shadow-none">
+                <Link href="/register" className="hidden md:flex bg-primary text-primary-foreground px-8 py-3 rounded-2xl text-sm font-black hover:opacity-90 transition-all shadow-xl shadow-slate-100/50 dark:shadow-none">
                   Get Started
                 </Link>
               </>

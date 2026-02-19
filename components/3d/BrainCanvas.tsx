@@ -7,7 +7,7 @@ import { useTheme } from "next-themes";
 import * as THREE from "three";
 
 // Neuron particle system with connections
-function Neurons({ count = 400, theme = "dark" }) {
+function Neurons({ count = 200, theme = "dark" }) { // Reduced default count
   const neuronsRef = useRef<THREE.Group>(null);
   const linesRef = useRef<THREE.LineSegments>(null);
   
@@ -67,20 +67,35 @@ function Neurons({ count = 400, theme = "dark" }) {
       neuron.scale.setScalar(data.size * pulse);
     });
     
-    // Update connection lines
-    if (linesRef.current) {
+    // Update connection lines - Throttle to every 3rd frame for performance
+    if (linesRef.current && state.clock.getElapsedTime() % 0.05 < 0.016) {
       const positions = linesRef.current.geometry.attributes.position.array as Float32Array;
       const colors = linesRef.current.geometry.attributes.color.array as Float32Array;
       let lineIndex = 0;
       
+      // Optimization: Only check connections for a subset or neighbors, 
+      // but for now we just reduced the count which is O(N^2) so that helps significantly.
+      // We will also just limit the total lines drawn to avoid buffer overflow if count starts high.
+      const maxLines = positions.length / 3;
+
       for (let i = 0; i < neurons.length; i++) {
+        if (lineIndex >= maxLines) break; // Safety break
+
         const neuronA = neuronsRef.current.children[i];
         
         for (let j = i + 1; j < neurons.length; j++) {
+          if (lineIndex >= maxLines) break;
+
           const neuronB = neuronsRef.current.children[j];
-          const distance = neuronA.position.distanceTo(neuronB.position);
+          // Optimization: Pre-check square distance to avoid sqrt
+          const dx = neuronA.position.x - neuronB.position.x;
+          const dy = neuronA.position.y - neuronB.position.y;
+          const dz = neuronA.position.z - neuronB.position.z;
+          const distSq = dx*dx + dy*dy + dz*dz;
           
-          if (distance < 1.5 && lineIndex < positions.length / 3) {
+          if (distSq < 2.25) { // 1.5 * 1.5
+            const distance = Math.sqrt(distSq); 
+
             positions[lineIndex * 3] = neuronA.position.x;
             positions[lineIndex * 3 + 1] = neuronA.position.y;
             positions[lineIndex * 3 + 2] = neuronA.position.z;
@@ -107,6 +122,11 @@ function Neurons({ count = 400, theme = "dark" }) {
         }
       }
       
+      // Zero out remaining lines to hide them (degenerate triangles essentially)
+      for (let i = lineIndex * 3; i < positions.length; i++) {
+         positions[i] = 0;
+      }
+
       linesRef.current.geometry.attributes.position.needsUpdate = true;
       linesRef.current.geometry.attributes.color.needsUpdate = true;
     }

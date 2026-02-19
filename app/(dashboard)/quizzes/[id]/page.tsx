@@ -22,6 +22,8 @@ export default function QuizDetailsPage({ params }: { params: { id: string } }) 
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [isAccessDenied, setIsAccessDenied] = useState(false);
+  const [requestStatus, setRequestStatus] = useState<"idle" | "loading" | "sent" | "error">("idle");
   const router = useRouter();
 
   useEffect(() => {
@@ -36,6 +38,10 @@ export default function QuizDetailsPage({ params }: { params: { id: string } }) 
 
         const res = await fetch(`/api/quizzes/${params.id}`);
         if (!res.ok) {
+           if (res.status === 403) {
+             setIsAccessDenied(true);
+             throw new Error("Access Denied");
+           }
           const errorData = await res.json().catch(() => ({}));
           throw new Error(errorData.message || `Error: ${res.status}`);
         }
@@ -44,8 +50,10 @@ export default function QuizDetailsPage({ params }: { params: { id: string } }) 
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : String(err);
         console.error("Failed to fetch quiz:", message);
-        setError(message);
-        if (message.includes("404") || message.includes("403")) {
+        if (message !== "Access Denied") {
+            setError(message);
+        }
+        if (message.includes("404")) {
            router.push("/quizzes");
         }
       } finally {
@@ -66,6 +74,28 @@ export default function QuizDetailsPage({ params }: { params: { id: string } }) 
     }
   };
 
+  const handleRequestAccess = async () => {
+    setRequestStatus("loading");
+    try {
+        const res = await fetch(`/api/quizzes/${params.id}/access-requests`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({}) 
+        });
+
+        if (res.ok) {
+            setRequestStatus("sent");
+        } else {
+            const data = await res.json();
+            alert(data.message || "Failed to send request");
+            setRequestStatus("error");
+        }
+    } catch (error) {
+        console.error("Request access failed", error);
+        setRequestStatus("error");
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
@@ -73,6 +103,46 @@ export default function QuizDetailsPage({ params }: { params: { id: string } }) 
         <p className="text-muted-foreground">Loading quiz details...</p>
       </div>
     );
+  }
+
+  if (isAccessDenied) {
+      return (
+        <div className="flex flex-col items-center justify-center py-20 gap-6 max-w-md mx-auto text-center">
+            <div className="w-20 h-20 bg-amber-100 dark:bg-amber-900/20 rounded-full flex items-center justify-center text-amber-600 dark:text-amber-500 mb-2">
+                <HelpCircle className="w-10 h-10" />
+            </div>
+            <h2 className="text-3xl font-black text-slate-900 dark:text-white">Approval Required</h2>
+            <p className="text-muted-foreground text-lg">
+                This quiz is private and requires approval from the creator to participate.
+            </p>
+            
+            {requestStatus === "sent" ? (
+                <div className="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 px-6 py-4 rounded-2xl font-bold flex items-center gap-3">
+                    <Trophy className="w-5 h-5" />
+                    Request Sent! Waiting for approval.
+                </div>
+            ) : (
+                <button 
+                    onClick={handleRequestAccess}
+                    disabled={requestStatus === "loading"}
+                    className="bg-primary text-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-primary/90 transition-all shadow-lg hover:shadow-primary/20 flex items-center gap-2"
+                >
+                    {requestStatus === "loading" ? (
+                        <>
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                            Sending Request...
+                        </>
+                    ) : (
+                        "Request Access"
+                    )}
+                </button>
+            )}
+
+            <Link href="/quizzes" className="text-muted-foreground hover:text-foreground font-bold mt-4">
+                Return to Explorer
+            </Link>
+        </div>
+      );
   }
 
   if (!quiz) {
