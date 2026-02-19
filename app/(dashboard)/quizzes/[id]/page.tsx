@@ -132,7 +132,7 @@ export default function QuizDetailsPage({ params }: { params: { id: string } }) 
         });
         if (res.ok) {
             // Password correct - store it for the attempt
-            sessionStorage.setItem(`pwd_${params.id}`, password);
+            sessionStorage.setItem(`pass_${params.id}`, password);
             router.push(`/quizzes/${params.id}/attempt`);
         } else {
             alert("Incorrect password");
