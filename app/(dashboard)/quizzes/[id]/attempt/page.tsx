@@ -45,6 +45,7 @@ export default function QuizAttemptPage({ params }: { params: { id: string } }) 
   const { status: authStatus } = useSession();
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<({ selectedOptionIndex: number } | null)[]>([]);
@@ -132,6 +133,15 @@ export default function QuizAttemptPage({ params }: { params: { id: string } }) 
           fetch(`/api/attempts?quizId=${params.id}`)
         ]);
 
+        if (!quizRes.ok) {
+            if (quizRes.status === 403) {
+                 alert("Access Denied. Please enter the password again.");
+                 router.push(`/quizzes/${params.id}`);
+                 return;
+            }
+             throw new Error("Failed to load quiz");
+        }
+
         const rawQuiz = await quizRes.json();
         const userAttempts = await userAttemptsRes.json();
         
@@ -179,6 +189,7 @@ export default function QuizAttemptPage({ params }: { params: { id: string } }) 
         setStartTime(Date.now());
       } catch (err) {
         console.error(err);
+        setError("Failed to load quiz. Please try again.");
       } finally {
         if (authStatus !== "loading") setLoading(false);
       }
@@ -297,6 +308,17 @@ export default function QuizAttemptPage({ params }: { params: { id: string } }) 
   if (attemptResult) {
     const reviewQuiz = (attemptResult.quizId && typeof attemptResult.quizId === 'object') ? attemptResult.quizId as unknown as Quiz : quiz as Quiz;
     return <ScoreDisplay result={attemptResult} quiz={reviewQuiz} />;
+  }
+
+  if (error) {
+      return (
+          <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+              <p className="text-red-500 font-bold">{error}</p>
+              <button onClick={() => router.push("/quizzes")} className="text-primary hover:underline">
+                  Return to Quizzes
+              </button>
+          </div>
+      );
   }
 
   if (!quiz) return null;
