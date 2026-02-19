@@ -65,7 +65,7 @@ export async function GET(
     const canTakeQuiz = hasRoleToTake || canTakeByAccessType;
 
     if (!canViewResults && !canTakeQuiz) {
-      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+      return NextResponse.json({ message: "Forbidden", accessType: quiz.accessType }, { status: 403 });
     }
 
     // If not creator/teacher, hide correct answers from questions

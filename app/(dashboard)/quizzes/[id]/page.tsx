@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSession, signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Clock, HelpCircle, Trophy, Play, Edit, Trash2, Loader2, ArrowLeft, TrendingUp } from "lucide-react";
+import { Clock, HelpCircle, Trophy, Play, Edit, Trash2, Loader2, ArrowLeft, TrendingUp, Shield } from "lucide-react";
 import Link from "next/link";
 
 interface Quiz {
@@ -25,6 +25,8 @@ export default function QuizDetailsPage({ params }: { params: { id: string } }) 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [isAccessDenied, setIsAccessDenied] = useState(false);
+  const [passwordRequired, setPasswordRequired] = useState(false);
+  const [password, setPassword] = useState("");
   const [requestStatus, setRequestStatus] = useState<"idle" | "loading" | "sent" | "error">("idle");
   const [showRegistration, setShowRegistration] = useState(false);
   const [registrationData, setRegistrationData] = useState<Record<string, string>>({});
@@ -43,7 +45,12 @@ export default function QuizDetailsPage({ params }: { params: { id: string } }) 
         const res = await fetch(`/api/quizzes/${params.id}`);
         if (!res.ok) {
            if (res.status === 403) {
-             setIsAccessDenied(true);
+             const errorData = await res.json();
+             if (errorData.accessType === 'password') {
+                setPasswordRequired(true);
+             } else {
+                setIsAccessDenied(true);
+             }
              throw new Error("Access Denied");
            }
           const errorData = await res.json().catch(() => ({}));
@@ -114,6 +121,25 @@ export default function QuizDetailsPage({ params }: { params: { id: string } }) 
     router.push(`/quizzes/${params.id}/attempt`);
   };
 
+  const submitPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    // Try to fetch quiz again with password header
+    try {
+        const res = await fetch(`/api/quizzes/${params.id}`, {
+            headers: { 'x-quiz-passcode': password }
+        });
+        if (res.ok) {
+            // Password correct - store it for the attempt
+            sessionStorage.setItem(`pwd_${params.id}`, password);
+            router.push(`/quizzes/${params.id}/attempt`);
+        } else {
+            alert("Incorrect password");
+        }
+    } catch {
+        alert("Verification failed");
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
@@ -121,6 +147,43 @@ export default function QuizDetailsPage({ params }: { params: { id: string } }) 
         <p className="text-muted-foreground">Loading quiz details...</p>
       </div>
     );
+  }
+
+
+
+  if (passwordRequired) {
+      return (
+        <div className="flex flex-col items-center justify-center py-20 gap-6 max-w-md mx-auto text-center">
+            <div className="w-20 h-20 bg-indigo-100 dark:bg-indigo-900/20 rounded-full flex items-center justify-center text-indigo-600 dark:text-indigo-400 mb-2">
+                <Shield className="w-10 h-10" />
+            </div>
+            <h2 className="text-3xl font-black text-slate-900 dark:text-white">Password Required</h2>
+            <p className="text-muted-foreground text-lg">
+                This quiz is protected. Please enter the passcode to continue.
+            </p>
+            
+            <form onSubmit={submitPassword} className="w-full max-w-sm flex flex-col gap-4">
+                <input 
+                    type="password" 
+                    required
+                    placeholder="Enter passcode"
+                    className="w-full px-5 py-4 rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 text-center font-bold text-lg focus:border-indigo-500 focus:outline-none"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                />
+                <button 
+                    type="submit"
+                    className="bg-indigo-600 text-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-indigo-700 transition-all shadow-lg hover:shadow-indigo-500/20"
+                >
+                    Unlock Quiz
+                </button>
+            </form>
+
+            <Link href="/quizzes" className="text-muted-foreground hover:text-foreground font-bold mt-4">
+                Return to Explorer
+            </Link>
+        </div>
+      );
   }
 
   if (isAccessDenied) {
