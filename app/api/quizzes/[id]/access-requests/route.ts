@@ -5,6 +5,7 @@ import connectToDatabase from "@/lib/mongodb";
 import Quiz from "@/lib/models/Quiz";
 import QuizAccessRequest from "@/lib/models/QuizAccessRequest";
 import { checkQuizPermission, Permission } from "@/lib/permissions";
+import Notification from "@/lib/models/Notification";
 
 export async function POST(
   req: Request,
@@ -51,6 +52,18 @@ export async function POST(
       },
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
+
+    // Create Notification for the Quiz Creator
+    if (quiz.createdBy.toString() !== userId) {
+        await Notification.create({
+            recipient: quiz.createdBy,
+            type: "access_request",
+            title: "New Access Request",
+            message: `${name} has requested access to "${quiz.title}"`,
+            link: `/quizzes/${quiz._id}/access`,
+            read: false,
+        });
+    }
 
     return NextResponse.json(requestDoc, { status: 201 });
   } catch (error: unknown) {

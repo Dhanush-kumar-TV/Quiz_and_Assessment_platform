@@ -43,7 +43,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const { quizId, answers, timeTaken } = await req.json();
+    const { quizId, answers, timeTaken, registrationData } = await req.json();
 
     if (!quizId || !answers) {
       return NextResponse.json({ message: "Missing fields" }, { status: 400 });
@@ -112,6 +112,7 @@ export async function POST(req: Request) {
       completedAt: new Date(),
       categoryScores,
       attemptNumber: existingAttemptCount + 1,
+      registrationData,
     });
 
     const populatedAttempt = await Attempt.findById(attempt._id).populate("quizId");

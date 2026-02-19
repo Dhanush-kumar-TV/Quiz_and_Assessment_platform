@@ -3,15 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import QuestionForm from "./QuestionForm";
-import { 
-  Copy, 
-  Trash2, 
-  Plus, 
-  BarChart3, 
-  Shield, 
-  Link as LinkIcon, 
-  Users
-} from "lucide-react";
+import Link from "next/link";
+import { Copy, Plus, Save, Trash2, Users, Settings, Clock, Shield, AlertTriangle, Link as LinkIcon, Loader2, BarChart3 } from "lucide-react";
 
 type QuizQuestion = { type?: string; questionText: string; options: { text: string; isCorrect: boolean; image?: string }[]; points?: number; required?: boolean; timeLimit?: number; category?: string; image?: string };
 
@@ -552,7 +545,6 @@ function RolesManagement({ quizId }: { quizId: string }) {
 
   useEffect(() => {
     fetchRoles();
-    fetchAccessRequests();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [quizId]);
 
@@ -566,41 +558,6 @@ function RolesManagement({ quizId }: { quizId: string }) {
       }
     } catch (err) {
       console.error(err);
-    }
-  }
-
-  async function fetchAccessRequests() {
-    try {
-      setRequestsLoading(true);
-      const res = await fetch(`/api/quizzes/${quizId}/access-requests?t=${Date.now()}`, { cache: 'no-store' });
-      if (res.ok) {
-        const data = await res.json();
-        setAccessRequests(Array.isArray(data) ? data : []);
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setRequestsLoading(false);
-    }
-  }
-
-  async function decideAccessRequest(requestId: string, action: "approve" | "deny") {
-    try {
-      const res = await fetch(`/api/quizzes/${quizId}/access-requests/${requestId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        alert(data.message || "Failed to update request");
-        return;
-      }
-      await fetchAccessRequests();
-      // If approved, the user will now have 'student' role and can take quiz
-    } catch (err) {
-      console.error(err);
-      alert("An error occurred while updating the request.");
     }
   }
 
@@ -692,62 +649,24 @@ function RolesManagement({ quizId }: { quizId: string }) {
         </div>
 
         <div className="lg:col-span-2">
-          {/* Pending Access Requests */}
-          <div className="mb-8 rounded-3xl border-2 border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="font-black text-sm uppercase tracking-widest text-muted-foreground">Access Requests</h3>
-                <p className="text-xs font-bold text-muted-foreground mt-1">
-                  For quizzes using <span className="font-black">approval</span> access.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={fetchAccessRequests}
-                disabled={requestsLoading}
-                className="px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-black text-xs hover:bg-slate-100 dark:hover:bg-slate-800 transition-all disabled:opacity-50"
-              >
-                {requestsLoading ? "Refreshing..." : "Refresh"}
-              </button>
-            </div>
-
-            {accessRequests.length === 0 ? (
-              <p className="text-sm font-bold text-slate-400 text-center py-6">
-                No pending requests.
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {accessRequests.map((r) => (
-                  <div
-                    key={r._id}
-                    className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800"
-                  >
-                    <div className="min-w-0">
-                      <p className="font-black text-sm truncate">{r.name || r.userId?.name || "Request"}</p>
-                      <p className="text-xs font-bold text-muted-foreground truncate">
-                        {r.userId?.email || "Unknown email"}
-                      </p>
+          <div className="mb-10 p-8 bg-indigo-50 dark:bg-indigo-900/10 rounded-[2.5rem] border border-indigo-100 dark:border-indigo-900/30">
+             <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-white dark:bg-indigo-900/50 rounded-2xl flex items-center justify-center text-indigo-600 shadow-sm">
+                        <Shield className="w-6 h-6" />
                     </div>
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        onClick={() => decideAccessRequest(r._id, "approve")}
-                        className="px-4 py-2 rounded-xl bg-emerald-600 text-white font-black text-xs hover:bg-emerald-700 transition-all"
-                      >
-                        Grant
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => decideAccessRequest(r._id, "deny")}
-                        className="px-4 py-2 rounded-xl bg-red-600 text-white font-black text-xs hover:bg-red-700 transition-all"
-                      >
-                        Deny
-                      </button>
+                    <div>
+                        <h3 className="text-xl font-black text-indigo-900 dark:text-indigo-100">Access Requests</h3>
+                        <p className="text-sm font-medium text-indigo-600/80 dark:text-indigo-300/80">Manage pending requests from students</p>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
+                </div>
+                <Link 
+                    href={`/quizzes/${quizId}/access`}
+                    className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200/50 dark:shadow-none"
+                >
+                    Manage Requests
+                </Link>
+             </div>
           </div>
 
           <div className="rounded-3xl border-2 border-slate-100 dark:border-slate-800 overflow-hidden">

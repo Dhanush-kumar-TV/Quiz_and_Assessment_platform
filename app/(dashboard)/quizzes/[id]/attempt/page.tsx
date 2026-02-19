@@ -96,6 +96,7 @@ export default function QuizAttemptPage({ params }: { params: { id: string } }) 
             questionIndex: quiz?.questions[i]?.originalIndex // Crucial for shuffled scoring
           })),
           timeTaken,
+          registrationData: JSON.parse(sessionStorage.getItem(`reg_${params.id}`) || "{}"),
         }),
       });
 

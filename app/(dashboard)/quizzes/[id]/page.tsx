@@ -15,6 +15,8 @@ interface Quiz {
     timeLimit: number;
     isPublished: boolean;
     createdBy: { _id: string; name: string } | string;
+    accessType?: "public" | "private" | "password" | "approval" | "registration";
+    registrationFields?: string[];
 }
 
 export default function QuizDetailsPage({ params }: { params: { id: string } }) {
@@ -24,6 +26,8 @@ export default function QuizDetailsPage({ params }: { params: { id: string } }) 
   const [error, setError] = useState("");
   const [isAccessDenied, setIsAccessDenied] = useState(false);
   const [requestStatus, setRequestStatus] = useState<"idle" | "loading" | "sent" | "error">("idle");
+  const [showRegistration, setShowRegistration] = useState(false);
+  const [registrationData, setRegistrationData] = useState<Record<string, string>>({});
   const router = useRouter();
 
   useEffect(() => {
@@ -96,6 +100,20 @@ export default function QuizDetailsPage({ params }: { params: { id: string } }) 
     }
   };
 
+  const handleStartAttempt = () => {
+    if (quiz?.accessType === 'registration' && quiz.registrationFields && quiz.registrationFields.length > 0) {
+        setShowRegistration(true);
+    } else {
+        router.push(`/quizzes/${params.id}/attempt`);
+    }
+  };
+
+  const submitRegistration = (e: React.FormEvent) => {
+    e.preventDefault();
+    sessionStorage.setItem(`reg_${params.id}`, JSON.stringify(registrationData));
+    router.push(`/quizzes/${params.id}/attempt`);
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
@@ -141,6 +159,55 @@ export default function QuizDetailsPage({ params }: { params: { id: string } }) 
             <Link href="/quizzes" className="text-muted-foreground hover:text-foreground font-bold mt-4">
                 Return to Explorer
             </Link>
+        </div>
+      );
+  }
+
+  if (showRegistration && quiz) {
+      return (
+        <div className="max-w-md mx-auto py-10">
+            <div className="bg-card rounded-3xl p-8 shadow-xl border border-border">
+                <div className="text-center mb-8">
+                    <div className="w-16 h-16 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <Edit className="w-8 h-8" />
+                    </div>
+                    <h2 className="text-2xl font-black">Registration Required</h2>
+                    <p className="text-muted-foreground">Please fill in your details to start the quiz.</p>
+                </div>
+
+                <form onSubmit={submitRegistration} className="space-y-4">
+                    {quiz.registrationFields?.map((field) => (
+                        <div key={field} className="space-y-1">
+                            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">
+                                {field}
+                            </label>
+                            <input 
+                                required
+                                type={field === 'email' ? 'email' : 'text'}
+                                className="w-full bg-secondary/50 border border-border rounded-xl px-4 py-3 font-bold focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                                placeholder={`Enter your ${field}`}
+                                value={registrationData[field] || ''}
+                                onChange={(e) => setRegistrationData({...registrationData, [field]: e.target.value})}
+                            />
+                        </div>
+                    ))}
+                    <div className="pt-4 flex gap-3">
+                         <button 
+                            type="button"
+                            onClick={() => setShowRegistration(false)}
+                            className="flex-1 py-3 rounded-xl font-bold text-muted-foreground hover:bg-secondary transition-colors"
+                        >
+                            Cancel
+                        </button>
+                        <button 
+                            type="submit"
+                            className="flex-1 bg-primary text-primary-foreground py-3 rounded-xl font-bold hover:opacity-90 transition-all"
+                        >
+                            Start Quiz
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
       );
   }
@@ -224,13 +291,13 @@ export default function QuizDetailsPage({ params }: { params: { id: string } }) 
                         Start Attempt (Creator)
                     </button>
                 ) : (
-                    <Link 
-                        href={`/quizzes/${params.id}/attempt`}
+                    <button 
+                        onClick={handleStartAttempt}
                         className="flex-grow md:flex-none flex items-center justify-center gap-2 bg-primary text-primary-foreground px-10 py-5 rounded-2xl font-black text-lg hover:opacity-90 transition-all shadow-xl shadow-indigo-100 dark:shadow-none hover:-translate-y-1"
                     >
                         <Play className="w-6 h-6 fill-current" />
                         Start Attempt
-                    </Link>
+                    </button>
                 )}
                 
                 {isCreator && (

@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { Brain, LogOut, User, PlusCircle, History, LayoutDashboard, Settings, Moon, Sun, Monitor, ChevronDown, BarChart3, Shield } from "lucide-react";
 import { useTheme } from "next-themes";
 import Image from "next/image";
+import NotificationBell from "@/components/NotificationBell";
 
 export default function Navbar() {
   const { data: session } = useSession();
@@ -64,7 +65,9 @@ export default function Navbar() {
           </button>
 
           <div className="h-6 w-px bg-border mx-1 md:h-8 md:mx-2"></div>
-
+          
+          {session && <NotificationBell />}
+          
           <div className="flex items-center gap-2 md:gap-6">
             {session ? (
               <>

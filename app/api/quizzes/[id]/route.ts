@@ -129,6 +129,11 @@ export async function PUT(
         if (next) {
           updateData.password = await bcrypt.hash(next, 10);
         } else {
+             // If attempting to set/keep password access without a new password,
+             // ensure there is an OLD password.
+             if (!quiz.password) {
+                 return NextResponse.json({ message: "Password is required when enabling password access" }, { status: 400 });
+             }
           delete updateData.password;
         }
       }

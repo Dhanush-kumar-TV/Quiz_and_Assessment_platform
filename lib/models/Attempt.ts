@@ -18,6 +18,7 @@ const AttemptSchema = new Schema(
     status: { type: String, enum: ['active', 'completed', 'quit'], default: 'active' },
     categoryScores: { type: Map, of: Number, default: {} },
     attemptNumber: { type: Number, default: 1 },
+    registrationData: { type: Map, of: String },
   },
   { timestamps: true }
 );
