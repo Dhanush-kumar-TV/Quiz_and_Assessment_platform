@@ -20,7 +20,6 @@ export default function AccessManagementPage({ params }: { params: { id: string 
   const router = useRouter();
   const [requests, setRequests] = useState<AccessRequest[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const [quizTitle, setQuizTitle] = useState("");
 
   useEffect(() => {
@@ -108,7 +107,7 @@ export default function AccessManagementPage({ params }: { params: { id: string 
         </div>
         <div>
             <h1 className="text-3xl font-black text-foreground">Access Requests</h1>
-            <p className="text-muted-foreground font-medium">Manage permissions for <span className="text-foreground font-bold">"{quizTitle}"</span></p>
+            <p className="text-muted-foreground font-medium">Manage permissions for <span className="text-foreground font-bold">&quot;{quizTitle}&quot;</span></p>
         </div>
       </div>
 

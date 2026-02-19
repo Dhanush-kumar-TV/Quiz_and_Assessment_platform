@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import QuestionForm from "./QuestionForm";
 import Link from "next/link";
-import { Copy, Plus, Save, Trash2, Users, Settings, Clock, Shield, AlertTriangle, Link as LinkIcon, Loader2, BarChart3 } from "lucide-react";
+import { Copy, Plus, Trash2, Users, Shield, Link as LinkIcon, BarChart3 } from "lucide-react";
 
 type QuizQuestion = { type?: string; questionText: string; options: { text: string; isCorrect: boolean; image?: string }[]; points?: number; required?: boolean; timeLimit?: number; category?: string; image?: string };
 
@@ -537,11 +537,9 @@ export default function QuizForm({ initialData }: { initialData?: { _id?: string
 
 function RolesManagement({ quizId }: { quizId: string }) {
   const [collaborators, setCollaborators] = useState<{ _id: string; userId: { _id: string; name: string; email: string }; role: string }[]>([]);
-  const [accessRequests, setAccessRequests] = useState<{ _id: string; name?: string; userId: { _id: string; name: string; email: string }; status: string }[]>([]);
   const [newEmail, setNewEmail] = useState("");
   const [newRole, setNewRole] = useState("teacher");
   const [loading, setLoading] = useState(false);
-  const [requestsLoading, setRequestsLoading] = useState(false);
 
   useEffect(() => {
     fetchRoles();
