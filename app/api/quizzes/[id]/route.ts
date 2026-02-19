@@ -60,10 +60,7 @@ export async function GET(
       ? await isPasscodeValid(quiz.password, providedPasscode)
       : true;
 
-    const canTakeByAccessType =
-      Boolean(quiz.isPublished) &&
-    const canTakeByAccessType =
-      Boolean(quiz.isPublished) &&
+
       quiz.accessType !== "approval" &&
       quiz.accessType !== "private" &&
       (quiz.accessType !== "password" || passOk);
