@@ -22,18 +22,12 @@ type Question = {
 
 export default function QuestionDisplay({ 
   question, 
-  currentIndex, 
-  totalQuestions, 
   selectedOption, 
   onSelect,
-  questionTimeLeft = null
 }: { 
   question: Question, 
-  currentIndex: number, 
-  totalQuestions: number,
   selectedOption: number | null,
   onSelect: (index: number) => void,
-  questionTimeLeft?: number | null
 }) {
   return (
     <div className="flex flex-col items-center justify-center w-full animate-in fade-in slide-in-from-bottom-8 duration-500">

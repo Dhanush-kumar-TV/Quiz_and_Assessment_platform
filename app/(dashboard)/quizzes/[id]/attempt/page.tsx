@@ -5,7 +5,7 @@ import { useSession, signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import QuestionDisplay from "@/components/quiz/QuestionDisplay";
 import ScoreDisplay from "@/components/attempt/ScoreDisplay";
-import { Loader2, Timer, ChevronRight, ChevronLeft, Send, AlertTriangle } from "lucide-react";
+import { Loader2, ChevronRight, ChevronLeft } from "lucide-react";
 
 interface Option {
     text: string;
@@ -240,34 +240,7 @@ export default function QuizAttemptPage({ params }: { params: { id: string } }) 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [questionTimeLeft, !!attemptResult, currentQuestionIndex]);
 
-  const saveProgress = async () => {
-    setSubmitting(true);
-    try {
-        const timeTaken = Math.floor((Date.now() - startTime) / 1000);
-        const passcode = sessionStorage.getItem(`pass_${params.id}`) || "";
-        await fetch("/api/attempts/save", {
-            method: "POST",
-            headers: passcode
-              ? { "Content-Type": "application/json", "x-quiz-passcode": passcode }
-              : { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                quizId: params.id,
-                answers: answers.filter(a => a !== null).map((a, i) => ({
-                    ...a,
-                    questionIndex: quiz?.questions[i]?.originalIndex
-                })),
-                timeTaken,
-                currentQuestionIndex
-            }),
-        });
-        alert("Progress saved! You can return later.");
-        router.push("/dashboard");
-    } catch (err) {
-        console.error(err);
-    } finally {
-        setSubmitting(false);
-    }
-  };
+
 
   const prevQuestion = () => {
     if (currentQuestionIndex > 0) {
@@ -363,11 +336,8 @@ export default function QuizAttemptPage({ params }: { params: { id: string } }) 
       <div className="flex-1 flex flex-col justify-center max-w-2xl mx-auto w-full px-6 py-20">
         <QuestionDisplay 
             question={quiz.questions[currentQuestionIndex]} 
-            currentIndex={currentQuestionIndex}
-            totalQuestions={quiz.questions.length}
             selectedOption={answers[currentQuestionIndex]?.selectedOptionIndex ?? null}
             onSelect={(optionIndex) => handleSelectOption(optionIndex)}
-            questionTimeLeft={questionTimeLeft}
         />
       </div>
 
