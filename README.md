@@ -13,7 +13,7 @@
 
 A modern, full-stack application for creating, managing, and attempting quizzes with real-time analytics and secure access control.
 
-[Request Demo](https://github.com/Dhanush-kumar-TV/Quiz_and_Assessment_platform/issues) • [Report Bug](https://github.com/Dhanush-kumar-TV/Quiz_and_Assessment_platform/issues)
+[Live Demo](https://quiz-and-assessment-platform.vercel.app/) • [Report Bug](https://github.com/Dhanush-kumar-TV/Quiz_and_Assessment_platform/issues)
 
 </div>
 
