@@ -6,6 +6,8 @@ import Quiz from "@/lib/models/Quiz";
 import { checkQuizPermission, Permission } from "@/lib/permissions";
 import bcrypt from "bcryptjs";
 
+export const dynamic = "force-dynamic";
+
 async function isPasscodeValid(stored: string | undefined | null, provided: string) {
   const pass = (provided || "").trim();
   if (!pass) return false;
@@ -60,7 +62,10 @@ export async function GET(
 
     const canTakeByAccessType =
       Boolean(quiz.isPublished) &&
+    const canTakeByAccessType =
+      Boolean(quiz.isPublished) &&
       quiz.accessType !== "approval" &&
+      quiz.accessType !== "private" &&
       (quiz.accessType !== "password" || passOk);
     const canTakeQuiz = hasRoleToTake || canTakeByAccessType;
 

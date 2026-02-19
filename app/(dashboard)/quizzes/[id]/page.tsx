@@ -25,6 +25,7 @@ export default function QuizDetailsPage({ params }: { params: { id: string } }) 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [isAccessDenied, setIsAccessDenied] = useState(false);
+  const [debugAccessType, setDebugAccessType] = useState<string | null>(null);
   const [passwordRequired, setPasswordRequired] = useState(false);
   const [password, setPassword] = useState("");
   const [requestStatus, setRequestStatus] = useState<"idle" | "loading" | "sent" | "error">("idle");
@@ -50,6 +51,7 @@ export default function QuizDetailsPage({ params }: { params: { id: string } }) 
                 setPasswordRequired(true);
              } else {
                 setIsAccessDenied(true);
+                setDebugAccessType(errorData.accessType || "unknown");
              }
              throw new Error("Access Denied");
            }
@@ -195,6 +197,7 @@ export default function QuizDetailsPage({ params }: { params: { id: string } }) 
             <h2 className="text-3xl font-black text-slate-900 dark:text-white">Approval Required</h2>
             <p className="text-muted-foreground text-lg">
                 This quiz is private and requires approval from the creator to participate.
+                {debugAccessType && <span className="block text-xs mt-2 opacity-50 font-mono">Debug: Type detected as "{debugAccessType}"</span>}
             </p>
             
             {requestStatus === "sent" ? (
