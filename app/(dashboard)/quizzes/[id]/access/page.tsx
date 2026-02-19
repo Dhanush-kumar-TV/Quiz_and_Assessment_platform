@@ -44,12 +44,9 @@ export default function AccessManagementPage({ params }: { params: { id: string 
       if (requestsRes.ok) {
         const data = await requestsRes.json();
         setRequests(Array.isArray(data) ? data : []);
-      } else {
-        setError("Failed to load requests");
       }
     } catch (err) {
       console.error(err);
-      setError("An error occurred");
     } finally {
       setLoading(false);
     }
